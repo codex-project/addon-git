@@ -1,0 +1,22 @@
+{
+    "name": "codex/addon-git",
+    "type": "codex-addon",
+    "description": "addon",
+    "authors": [
+        {"name": "Robin Radic", "email": "robin@radic.nl", "homepage": "http://radic.nl", "role": "Developer"}
+    ],
+    "require": {
+        "codex/composer-plugin": "~1.0",
+        "codex/core": "1.0.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Codex\\Addon\\Git\\": "src"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
