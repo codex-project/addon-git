@@ -1,6 +1,6 @@
 <?php
 
-namespace Codex\Addon\Defaults\Git\Http;
+namespace Codex\Addon\Git\Http;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Routing\Router;
@@ -23,7 +23,7 @@ class HttpServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    protected $namespace = 'Codex\Addon\Defaults\Git\Http\Controllers';
+    protected $namespace = 'Codex\Addon\Git\Http\Controllers';
 
     /**
      * Define your route model bindings, pattern filters, etc.

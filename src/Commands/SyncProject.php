@@ -5,7 +5,7 @@
  * MIT License and copyright information bundled with this package in the LICENSE file
  */
 
-namespace Codex\Addon\Defaults\Git\Commands;
+namespace Codex\Addon\Git\Commands;
 
 use Codex\Core\Contracts\Codex;
 use Illuminate\Contracts\Queue\Job;

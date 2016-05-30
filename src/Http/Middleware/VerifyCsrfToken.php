@@ -1,6 +1,6 @@
 <?php
 
-namespace Codex\Addon\Defaults\Git\Http\Middleware;
+namespace Codex\Addon\Git\Http\Middleware;
 
 use Closure;
 use Illuminate\Contracts\Encryption\Encrypter;

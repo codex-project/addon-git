@@ -1,5 +1,5 @@
 <?php
-namespace Codex\Addon\Defaults\Git;
+namespace Codex\Addon\Git;
 
 use Closure;
 use Codex\Core\Projects\Project;
@@ -66,7 +66,6 @@ class Syncer
         $this->cache   = $cache;
         $this->fs      = $project->getFiles();
         $this->codex   = $project->getCodex();
-        $this->remote  = 'github';
 
         $this->hookPoint('git:syncer', [ $this ]);
     }
@@ -131,7 +130,7 @@ class Syncer
         $menuPath  = $this->setting('sync.paths.menu');
         $indexPath = $this->setting('sync.paths.index');
 
-        $remote = $this->client($this->setting('remote'));
+        $remote = $this->client($this->setting('connection'));
         $rfs    = $remote->getFilesystem($repo, $owner, $ref);
 
         $files = $rfs->allFiles($this->setting('sync.paths.docs'));
@@ -148,9 +147,9 @@ class Syncer
 
         $destinationDir  = $ref; //$this->project->refPath();
         $menuContent     = $rfs->get($this->setting('sync.paths.menu')); //#base64_decode($menu[ 'content' ]);
-        $menuArray       = Yaml::parse($menuContent);
-        $unfilteredPages = [ ];
-        $this->extractDocumentsFromMenu($menuArray[ 'menu' ], $unfilteredPages);
+        #$menuArray       = Yaml::parse($menuContent);
+        #$unfilteredPages = [ ];
+        #$this->extractDocumentsFromMenu($menuArray[ 'menu' ], $unfilteredPages);
 
 
         $this->ensureDirectory($destinationDir);
@@ -190,7 +189,7 @@ class Syncer
         $this->fire('git.syncer.branches.start', [ $allowedBranches ]);
 
         $branchesToSync = [ ];
-        $remote         = $this->client($this->setting('remote'));
+        $remote         = $this->client($this->setting('connection'));
         $repo           = $this->setting('repository');
         $owner          = $this->setting('owner');
         $branches       = $remote->getBranches($repo, $owner);
@@ -214,7 +213,7 @@ class Syncer
     public function getVersionsToSync()
     {
         $versionsToSync      = [ ];
-        $remote              = $this->client($this->setting('remote'));
+        $remote              = $this->client($this->setting('connection'));
         $currentVersions     = $this->project->getRefs();
         $allowedVersionRange = new expression($this->setting('sync.constraints.versions'));
         $tags                = $remote->getTags($this->setting('repository'), $this->setting('owner')); #$this->remote->repositories()->tags();
@@ -237,31 +236,6 @@ class Syncer
         return $versionsToSync;
     }
 
-    public function extractDocumentsFromMenu($menuArray, &$documents = [ ])
-    {
-        foreach ( $menuArray as $key => $val ) {
-            if ( is_string($key) && is_string($val) ) {
-                $documents[] = $val;
-            } elseif ( is_string($key) && $key === 'children' && is_array($val) ) {
-                $this->extractDocumentsFromMenu($val, $documents);
-            } elseif ( isset($val[ 'name' ]) ) {
-                if ( isset($val[ 'document' ]) ) {
-                    $documents[] = $val[ 'document' ];
-                }
-                if ( isset($val[ 'href' ]) ) {
-                    //$item['href'] = $this->resolveLink($val['href']);
-                }
-                if ( isset($val[ 'icon' ]) ) {
-                    //$item['icon'] = $val['icon'];
-                }
-                if ( isset($val[ 'children' ]) && is_array($val[ 'children' ]) ) {
-                    $this->extractDocumentsFromMenu($val[ 'children' ], $documents);
-                }
-            }
-        }
-    }
-
-
     protected function setting($key, $default = null)
     {
         return array_get($this->project->config('git', []), $key, $default);
@@ -270,18 +244,22 @@ class Syncer
     /**
      * client method
      *
-     * @param null $remote
+     * @param null $connection
      *
      * @return \Sebwite\Git\Remotes\Remote
      */
-    protected function client($remote = null)
+    protected function client($connection = null)
     {
-        $remote = isset($remote) ? $remote : $this->remote;
-        $c      = [
-            'credentials' => config('codex.hooks.git.credentials.' . $remote),
+        $connection = config('codex-git.connections.' . $connection);
+        $remote = config('sebwite.git.connections.' . $connection['remote']);
+
+        config()->set('sebwite.git.connections.' . $connection);
+        $connection = isset($connection) ? $connection : $this->remote;
+        $c          = [
+            'credentials' => config('codex.hooks.git.credentials.' . $connection),
         ];
 
-        return $this->git->connection($remote);
+        return $this->git->connection($connection);
     }
 
     protected function ensureDirectory($path)

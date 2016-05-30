@@ -4,7 +4,7 @@
  *
  * License and copyright information bundled with this package in the LICENSE file
  */
-namespace Codex\Addon\Defaults\Git;
+namespace Codex\Addon\Git;
 
 use Codex\Core\Contracts\Codex;
 use Codex\Core\Projects\Project;

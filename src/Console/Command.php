@@ -5,9 +5,9 @@
  * MIT License and copyright information bundled with this package
  * in the LICENSE file or visit http://radic.mit-license.org
  */
-namespace Codex\Addon\Defaults\Git\Console;
+namespace Codex\Addon\Git\Console;
 
-use Codex\Addon\Defaults\Git\Git;
+use Codex\Addon\Git\Git;
 use Codex\Core\Contracts\Codex;
 use Illuminate\Contracts\Queue\Queue;
 
@@ -21,7 +21,7 @@ use Illuminate\Contracts\Queue\Queue;
  * @copyright                 2015, Robin Radic
  * @link                      https://github.com/robinradic
  */
-abstract class Command extends \Sebwite\Console\Command
+abstract class Command extends \Illuminate\Console\Command
 {
     /**
      * @var \Codex\Core\Contracts\Codex|\Codex\Core\Codex
