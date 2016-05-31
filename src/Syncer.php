@@ -250,15 +250,7 @@ class Syncer
      */
     protected function client($connection = null)
     {
-        $connection = config('codex-git.connections.' . $connection);
-        $remote = config('sebwite.git.connections.' . $connection['remote']);
-
-        config()->set('sebwite.git.connections.' . $connection);
-        $connection = isset($connection) ? $connection : $this->remote;
-        $c          = [
-            'credentials' => config('codex.hooks.git.credentials.' . $connection),
-        ];
-
+        $connection = $connection ?: $this->setting('connection');
         return $this->git->connection($connection);
     }
 
