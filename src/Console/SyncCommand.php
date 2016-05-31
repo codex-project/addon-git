@@ -37,9 +37,9 @@ class SyncCommand extends Command
             }
         }
 
-        if ( !$this->option('queue') ) {
-            $this->startListeners();
-        }
+
+        $this->startListeners();
+
 
         if ( $this->option('all') ) {
             foreach ( $projects as $project ) {
@@ -55,53 +55,56 @@ class SyncCommand extends Command
 
     protected function sync($project, $queue = false)
     {
-        $output = $this->output;
         if ( $queue ) {
             $this->git->createSyncJob($project);
         } else {
-            $this->git->gitSyncer($project)->syncWithProgress(function ($current, $version, $versions) use ($output) {
-                $output->writeln("Written brch");
-            }, function ($current, $total, $file, $files, $syncer) use ($output) {
-                $output->writeln("Written file [{$current}/{$total}] [{$file}]");
-            });
+            $this->git->gitSyncer($project)->syncAll();
         }
     }
 
     protected function startListeners()
     {
-        $listeners = [
-            'git.syncer.start'           => function ($name, $ref, $type) {
-
-                $this->line("git.syncer.start ($type) [$name:$ref]");
+        $listeners = [ //->project->getName()
+            'tick:file' => function(Syncer $syncer, $current, $total, $all, $now){
+                $name = $syncer->getProject()->getName();
+                $this->line("tick:file ($current/$total) [$name:$now]");
             },
-            'git.syncer.finish'          => function ($name, $ref, $type) {
-
-                $this->line("git.syncer.finish ($type) [$name:$ref]");
+            'tick'            => function (Syncer $syncer, $type, $current, $total, $all, $now) {
+                $name = $syncer->getProject()->getName();
+                $this->line("tick ($current/$total) [$name:$type:$now]");
             },
-            'git.syncer.branches.start'  => function ($name, $branches) {
-
+            'start'           => function (Syncer $syncer, $ref, $type) {
+                $name = $syncer->getProject()->getName();
+                $this->line("start ($type) [$name:$ref]");
+            },
+            'finish'          => function (Syncer $syncer, $ref, $type) {
+                $name = $syncer->getProject()->getName();
+                $this->line("finish ($type) [$name:$ref]");
+            },
+            'branches:start'  => function (Syncer $syncer, $branches) {
+                $name = $syncer->getProject()->getName();
                 $branches = implode(',', $branches);
-                $this->line("git.syncer.branches.start [$name]");
+                $this->line("branches:start [$name:$branches]");
             },
-            'git.syncer.branches.finish' => function ($name, $branches) {
-
+            'branches:finish' => function (Syncer $syncer, $branches) {
+                $name = $syncer->getProject()->getName();
                 $branches = implode(',', $branches);
-                $this->line("git.syncer.branches.finish [$name:$branches]");
+                $this->line("branches:finish [$name:$branches]");
             },
-            'git.syncer.versions.start'  => function ($name, $versions) {
-
+            'versions:start'  => function (Syncer $syncer, $versions) {
+                $name = $syncer->getProject()->getName();
                 $versions = implode(',', $versions);
-                $this->line("git.syncer.versions.start [$name:$versions]");
+                $this->line("versions:start [$name:$versions]");
             },
-            'git.syncer.versions.finish' => function ($name, $versions) {
-
+            'versions:finish' => function (Syncer $syncer, $versions) {
+                $name = $syncer->getProject()->getName();
                 $versions = implode(',', $versions);
-                $this->line("git.syncer.versions.finish [$name:$versions]");
+                $this->line("versions:finish [$name:$versions]");
             },
         ];
 
         foreach ( $listeners as $name => $listener ) {
-            $this->getLaravel()->make('events')->listen($name, $listener);
+            $this->getLaravel()->make('events')->listen("codex:git:syncer:{$name}", $listener);
         }
     }
 }

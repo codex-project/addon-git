@@ -6,8 +6,7 @@ use Codex\Core\Projects\Project;
 use Codex\Core\Traits\HookableTrait;
 use Illuminate\Contracts\Cache\Repository;
 use Sebwite\Git\Contracts\Manager;
-use Sebwite\Support\Path;
-use Symfony\Component\Yaml\Yaml;
+use Sebwite\Support\Str;
 use vierbergenlars\SemVer\expression;
 use vierbergenlars\SemVer\SemVerException;
 use vierbergenlars\SemVer\version;
@@ -34,12 +33,12 @@ class Syncer
     protected $remote;
 
     /**
-     * @var \Sebwite\Git\Remotes\Manager
+     * @var \Sebwite\Git\Contracts\Manager
      */
     protected $git;
 
     /**
-     * @var \Codex\Core\Project
+     * @var \Codex\Core\Projects\Project
      */
     protected $project;
 
@@ -48,16 +47,17 @@ class Syncer
      */
     protected $cache;
 
-    /** @var \Codex\Core\Codex|\Codex\Core\Contracts\Codex */
+    /**
+     * @var \Codex\Core\Codex|\Codex\Core\Contracts\Codex
+     */
     protected $codex;
 
     /**
      * Syncer constructor.
      *
-     * @param \Codex\Core\Project                    $project
-     * @param \Sebwite\Git\Manager                   $git
+     * @param \Codex\Core\Projects\Project           $project
+     * @param \Sebwite\Git\Contracts\Manager         $git
      * @param \Illuminate\Contracts\Cache\Repository $cache
-     * @param \Illuminate\Events\Dispatcher          $dispatcher
      */
     public function __construct(Project $project, Manager $git, Repository $cache)
     {
@@ -70,60 +70,105 @@ class Syncer
         $this->hookPoint('git:syncer', [ $this ]);
     }
 
-    public function syncWithProgress(Closure $tick, Closure $subtick = null)
+    /**
+     * setting method
+     *
+     * @param      $key
+     * @param null $default
+     *
+     * @return mixed
+     */
+    protected function setting($key, $default = null)
     {
-        $current  = 0;
-        $branches = $this->getBranchesToSync();
-        $versions = $this->getVersionsToSync();
-        foreach ( $branches as $branch ) {
-            $this->syncRef($branch, 'branch', $subtick);
-            $current++;
-            $tick($current, count($branches), $branches);
-        }
-        foreach ( $versions as $version ) {
-            $this->syncRef($version, 'tag', $subtick);
-            $current++;
-            $tick($current, count($version), $version);
+        return array_get($this->project->config('git', [ ]), $key, $default);
+    }
+
+    /**
+     * client method
+     *
+     * @param null $connection
+     *
+     * @return \Sebwite\Git\Remotes\Remote
+     */
+    protected function client($connection = null)
+    {
+        $connection = $connection ?: $this->setting('connection');
+        return $this->git->connection($connection);
+    }
+
+    /**
+     * ensureDirectory method
+     *
+     * @param $path
+     */
+    protected function ensureDirectory($path)
+    {
+
+        if ( !$this->fs->exists($path) ) {
+            $this->fs->makeDirectory($path);
         }
     }
 
-    public function syncAll()
-    {
-        $this->syncBranches();
-        $this->syncVersions();
-    }
-
-    public function syncBranches()
-    {
-        foreach ( $this->getBranchesToSync() as $branch ) {
-            $this->syncRef($branch, 'branch');
-        }
-    }
-
-    public function syncVersions()
-    {
-        foreach ( $this->getVersionsToSync() as $version ) {
-            $this->syncRef($version, 'tag');
-        }
-    }
-
+    /**
+     * log method
+     *
+     * @param       $level
+     * @param       $message
+     * @param array $context
+     */
     protected function log($level, $message, $context = [ ])
     {
         $this->codex->log($level, $message, $context);
     }
 
+    /**
+     * fire method
+     *
+     * @param       $name
+     * @param array $context
+     */
     public function fire($name, array $context = [ ])
     {
+        $name     = Str::ensureLeft($name, 'git.syncer.');
         $hookName = implode(':', explode('.', $name));
-        $context  = array_merge([ $this->project->getName() ], $context);
+        //$context  = array_merge([ $this ], $context);
 
         $this->log('info', $name, $context);
         $this->hookPoint($hookName, $context);
     }
 
+    /**
+     * syncAll method
+     */
+    public function syncAll()
+    {
+        $current  = 0;
+        $branches = $this->getBranchesToSync();
+        $versions = $this->getVersionsToSync();
+        foreach ( $branches as $branch ) {
+            $this->syncRef($branch, 'branch');
+            $current++;
+            $this->fire('tick', [ 'branch', $current, count($branches), $branches, $branch ]);
+            #$tick($current, count($branches), $branches);
+        }
+        foreach ( $versions as $version ) {
+            $this->syncRef($version, 'tag');
+            $current++;
+            $this->fire('tick', [ 'version', $current, count($versions), $versions, $version ]);
+            #$tick($current, count($version), $version);
+        }
+    }
+
+    /**
+     * syncRef method
+     *
+     * @param               $ref
+     * @param               $type
+     * @param \Closure|null $progress
+     */
     public function syncRef($ref, $type, Closure $progress = null)
     {
-        $this->fire('git.syncer.start', [ $ref, $type ]);
+        $this->fire('start', [ $ref, $type ]);
         $owner     = $this->setting('owner');
         $repo      = $this->setting('repository');
         $docPath   = $this->setting('sync.paths.docs');
@@ -133,8 +178,8 @@ class Syncer
         $remote = $this->client($this->setting('connection'));
         $rfs    = $remote->getFilesystem($repo, $owner, $ref);
 
-        $files = $rfs->allFiles($this->setting('sync.paths.docs'));
-        $total  = count($files);
+        $files = $rfs->allFiles($docPath);
+        $total = count($files);
 
 
         if ( !$rfs->exists($indexPath) ) {
@@ -145,19 +190,12 @@ class Syncer
             return $this->log('error', 'syncRef could not find the menu file', [ $indexPath ]);
         }
 
-        $destinationDir  = $ref; //$this->project->refPath();
-        $menuContent     = $rfs->get($this->setting('sync.paths.menu')); //#base64_decode($menu[ 'content' ]);
-        #$menuArray       = Yaml::parse($menuContent);
-        #$unfilteredPages = [ ];
-        #$this->extractDocumentsFromMenu($menuArray[ 'menu' ], $unfilteredPages);
-
-
+        $destinationDir = $ref;
         $this->ensureDirectory($destinationDir);
-        #$files  = $rfs->allFiles($this->setting('sync.paths.docs'));
-        $syncer = $this;
 
+        $syncer = $this;
         foreach ( $files as $current => $file ) {
-            $localPath = path_relative($file, $this->setting('sync.paths.docs'));
+            $localPath = path_relative($file, $docPath);
 
             if ( $progress instanceof Closure ) {
                 $this->project->getContainer()->call($progress, compact('current', 'total', 'file', 'files', 'syncer'));
@@ -165,11 +203,12 @@ class Syncer
             $localPath = path_join($destinationDir, $localPath);
             $dir       = path_get_directory($localPath);
             $this->ensureDirectory($dir);
-            $this->fs->put($localPath, $rfs->get($file));
+            $rfs->exists($file) && $this->fs->put($localPath, $rfs->get($file));
+            $this->fire('tick.file', [ $current, $total, $files, $file, $syncer ]);
         }
 
         // index.md resolving
-        $indexFile = $rfs->get($this->setting('sync.paths.index'));
+        $indexFile = $rfs->get($indexPath);
         $this->fs->put(path_join($destinationDir, 'index.md'), $indexFile);
 
 
@@ -177,16 +216,20 @@ class Syncer
             $branch = $remote->getBranch($this->setting('repository'), $ref, $this->setting('owner'));
             $this->cache->forever(md5($this->project->getName() . $branch[ 'name' ]), $branch[ 'sha' ]);
         }
-        $this->fire('git.syncer.finish', [ $ref, $type ]);
+        $this->fire('finish', [ $ref, $type ]);
     }
 
+    /**
+     * getBranchesToSync method
+     * @return array
+     */
     public function getBranchesToSync()
     {
         $allowedBranches = $this->setting('sync.constraints.branches');
         if ( count($allowedBranches) === 0 ) {
             return [ ];
         }
-        $this->fire('git.syncer.branches.start', [ $allowedBranches ]);
+        $this->fire('branches.start', [ $allowedBranches ]);
 
         $branchesToSync = [ ];
         $remote         = $this->client($this->setting('connection'));
@@ -206,10 +249,14 @@ class Syncer
                 $branchesToSync[] = $branch;
             }
         }
-        $this->fire('git.syncer.branches.finish', [ $branchesToSync ]);
+        $this->fire('branches.finish', [ $branchesToSync ]);
         return $branchesToSync;
     }
 
+    /**
+     * getVersionsToSync method
+     * @return array
+     */
     public function getVersionsToSync()
     {
         $versionsToSync      = [ ];
@@ -217,7 +264,7 @@ class Syncer
         $currentVersions     = $this->project->getRefs();
         $allowedVersionRange = new expression($this->setting('sync.constraints.versions'));
         $tags                = $remote->getTags($this->setting('repository'), $this->setting('owner')); #$this->remote->repositories()->tags();
-        $this->fire('git.syncer.versions.start', [ $tags ]);
+        $this->fire('versions.start', [ $tags ]);
 
         foreach ( $tags as $tag => $sha ) {
             try {
@@ -232,33 +279,109 @@ class Syncer
             $versionsToSync[] = $version;
         }
 
-        $this->fire('git.syncer.versions.finish', [ $versionsToSync ]);
+        $this->fire('versions.finish', [ $versionsToSync ]);
         return $versionsToSync;
     }
 
-    protected function setting($key, $default = null)
+    /**
+     * @return \Illuminate\Contracts\Filesystem\Filesystem
+     */
+    public function getFs()
     {
-        return array_get($this->project->config('git', []), $key, $default);
+        return $this->fs;
     }
 
     /**
-     * client method
+     * Set the fs value
      *
-     * @param null $connection
-     *
-     * @return \Sebwite\Git\Remotes\Remote
+     * @param \Illuminate\Contracts\Filesystem\Filesystem $fs
      */
-    protected function client($connection = null)
+    public function setFs($fs)
     {
-        $connection = $connection ?: $this->setting('connection');
-        return $this->git->connection($connection);
+        $this->fs = $fs;
     }
 
-    protected function ensureDirectory($path)
+    /**
+     * @return string
+     */
+    public function getRemote()
     {
-
-        if ( !$this->fs->exists($path) ) {
-            $this->fs->makeDirectory($path);
-        }
+        return $this->remote;
     }
+
+    /**
+     * Set the remote value
+     *
+     * @param string $remote
+     */
+    public function setRemote($remote)
+    {
+        $this->remote = $remote;
+    }
+
+    /**
+     * @return Manager
+     */
+    public function getGit()
+    {
+        return $this->git;
+    }
+
+    /**
+     * Set the git value
+     *
+     * @param Manager $git
+     */
+    public function setGit($git)
+    {
+        $this->git = $git;
+    }
+
+    /**
+     * @return Project
+     */
+    public function getProject()
+    {
+        return $this->project;
+    }
+
+    /**
+     * Set the project value
+     *
+     * @param Project $project
+     */
+    public function setProject($project)
+    {
+        $this->project = $project;
+    }
+
+    /**
+     * @return Repository
+     */
+    public function getCache()
+    {
+        return $this->cache;
+    }
+
+    /**
+     * Set the cache value
+     *
+     * @param Repository $cache
+     */
+    public function setCache($cache)
+    {
+        $this->cache = $cache;
+    }
+
+    /**
+     * @return \Codex\Core\Codex|\Codex\Core\Contracts\Codex
+     */
+    public function getCodex()
+    {
+        return $this->codex;
+    }
+
+
+
+
 }
