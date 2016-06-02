@@ -8,7 +8,7 @@
     "require": {
         "codex/composer-plugin": "~1.0",
         "codex/core": "1.0.*",
-        "sebwite/git": "1.0.*@dev"
+        "sebwite/git": "1.0.*"
     },
     "autoload": {
         "psr-4": {
