@@ -8,7 +8,7 @@
 namespace Codex\Addon\Git\Console;
 
 use Codex\Addon\Git\Git;
-use Codex\Core\Contracts\Codex;
+use Codex\Contracts\Codex;
 use Illuminate\Contracts\Queue\Queue;
 
 /**
@@ -24,7 +24,7 @@ use Illuminate\Contracts\Queue\Queue;
 abstract class Command extends \Illuminate\Console\Command
 {
     /**
-     * @var \Codex\Core\Contracts\Codex|\Codex\Core\Codex
+     * @var \Codex\Contracts\Codex|\Codex\Codex
      */
     protected $codex;
 
@@ -41,7 +41,7 @@ abstract class Command extends \Illuminate\Console\Command
     /**
      * Command constructor.
      *
-     * @param \Codex\Core\Contracts\Codex|\Codex\Core\Factory             $codex
+     * @param \Codex\Contracts\Codex|\Codex\Factory                       $codex
      * @param \Illuminate\Contracts\Queue\Queue                           $queue
      * @param \Codex\Hooks\Git\Contracts\Factory|\Codex\Hooks\Git\Factory $git
      */

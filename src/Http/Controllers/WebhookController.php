@@ -6,8 +6,8 @@
  */
 namespace Codex\Hooks\Git\Http\Controllers;
 
-use Codex\Core\Contracts\Codex ;
-use Codex\Core\Http\Controllers\Controller;
+use Codex\Contracts\Codex;
+use Codex\Http\Controller;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Http\Response;
 use Sebwite\Git\Contracts\Manager;
@@ -24,7 +24,7 @@ use Sebwite\Support\Arr;
 class WebhookController extends Controller
 {
     /**
-     * @var \Codex\Core\Factory
+     * @var \Codex\Factory
      */
     protected $codex;
 

@@ -2,8 +2,8 @@
 namespace Codex\Addon\Git;
 
 use Closure;
-use Codex\Core\Projects\Project;
-use Codex\Core\Traits\HookableTrait;
+use Codex\Projects\Project;
+use Codex\Traits\HookableTrait;
 use Illuminate\Contracts\Cache\Repository;
 use Sebwite\Git\Contracts\Manager;
 use Sebwite\Support\Str;
@@ -38,7 +38,7 @@ class Syncer
     protected $git;
 
     /**
-     * @var \Codex\Core\Projects\Project
+     * @var \Codex\Projects\Project
      */
     protected $project;
 
@@ -48,14 +48,14 @@ class Syncer
     protected $cache;
 
     /**
-     * @var \Codex\Core\Codex|\Codex\Core\Contracts\Codex
+     * @var \Codex\Codex|\Codex\Contracts\Codex
      */
     protected $codex;
 
     /**
      * Syncer constructor.
      *
-     * @param \Codex\Core\Projects\Project           $project
+     * @param \Codex\Projects\Project                $project
      * @param \Sebwite\Git\Contracts\Manager         $git
      * @param \Illuminate\Contracts\Cache\Repository $cache
      */
@@ -374,7 +374,7 @@ class Syncer
     }
 
     /**
-     * @return \Codex\Core\Codex|\Codex\Core\Contracts\Codex
+     * @return \Codex\Codex|\Codex\Contracts\Codex
      */
     public function getCodex()
     {

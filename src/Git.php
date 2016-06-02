@@ -6,9 +6,9 @@
  */
 namespace Codex\Addon\Git;
 
-use Codex\Core\Contracts\Codex;
-use Codex\Core\Projects\Project;
-use Codex\Core\Traits\HookableTrait;
+use Codex\Contracts\Codex;
+use Codex\Projects\Project;
+use Codex\Traits\HookableTrait;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Queue\Queue;
@@ -31,7 +31,7 @@ class Git
     protected $files;
 
     /**
-     * @var \Codex\Core\Contracts\Codex|\Codex\Core\Codex
+     * @var \Codex\Contracts\Codex|\Codex\Codex
      */
     protected $codex;
 
@@ -49,7 +49,7 @@ class Git
      * Factory constructor.
      *
      * @param \Illuminate\Contracts\Filesystem\Filesystem $files
-     * @param \Codex\Core\Factory                 $codex
+     * @param \Codex\Factory                              $codex
      * @param \Illuminate\Contracts\Queue\Queue           $queue
      * @param \Illuminate\Contracts\Cache\Repository      $cache
      * @param \Sebwite\Git\Contracts\Manager              $git

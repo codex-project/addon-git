@@ -7,7 +7,7 @@
 
 namespace Codex\Addon\Git\Commands;
 
-use Codex\Core\Contracts\Codex;
+use Codex\Contracts\Codex;
 use Illuminate\Contracts\Queue\Job;
 
 /**
@@ -23,7 +23,7 @@ class SyncProject
     protected $codex;
 
     /**
-     * @param \Codex\Core\Contracts\Codex|\Codex\Core\Factory $codex
+     * @param \Codex\Contracts\Codex|\Codex\Factory $codex
      */
     public function __construct(Codex $codex)
     {

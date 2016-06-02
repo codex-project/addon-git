@@ -1,9 +1,9 @@
 <?php
 namespace Codex\Addon\Git;
 
-use Codex\Core\Console\ListCommand;
-use Codex\Core\Projects\Project;
-use Codex\Core\Traits\CodexProviderTrait;
+use Codex\Console\ListCommand;
+use Codex\Projects\Project;
+use Codex\Traits\CodexProviderTrait;
 use Sebwite\Support\ServiceProvider;
 
 class GitServiceProvider extends ServiceProvider
