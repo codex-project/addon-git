@@ -1,10 +1,11 @@
 {
     "name": "codex/addon-git",
     "type": "codex-addon",
-    "description": "addon",
-    "authors": [
-        {"name": "Robin Radic", "email": "robin@radic.nl", "homepage": "http://radic.nl", "role": "Developer"}
-    ],
+    "description": "The Git addon provides Codex the means to fetch documentation from Github/Bitbucket repositories.",
+    "keywords": ["laravel", "documentation", "docs", "git", "codex", "github", "bitbucket"],
+    "homepage": "http://codex-project.ninja",
+    "authors": [{"name": "Robin Radic", "email": "robin@radic.nl"}],
+    "license": "MIT",
     "require": {
         "codex/composer-plugin": "~1.0",
         "codex/core": "1.0.*",
