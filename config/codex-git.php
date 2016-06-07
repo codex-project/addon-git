@@ -1,13 +1,15 @@
 <?php
 
 return [
+    'route-prefix' => '_git-webhook',
+    
     'connections'            => [
-        'github1'          => [
+        'github1'    => [
             'remote' => 'github',
             'type'   => 'token',
             'token'  => env('GITHUB_TOKEN', ''),
         ],
-        'bitbucket1'       => [
+        'bitbucket1' => [
             'remote' => 'bitbucket',
             'type'   => 'oauth',
             'key'    => env('BITBUCKET_CLIENT_KEY', ''),
@@ -60,7 +62,7 @@ return [
             'enabled'    => false,
             'owner'      => '',
             'repository' => '',
-            'connection'     => '',
+            'connection' => '',
             'sync'       => [
                 'constraints' => [
                     'branches' => [ 'master' ],
