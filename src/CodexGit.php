@@ -6,12 +6,14 @@
  */
 namespace Codex\Addon\Git;
 
+use Codex\Addon\Git\Commands\SyncProject;
 use Codex\Contracts\Codex;
 use Codex\Projects\Project;
 use Codex\Traits\HookableTrait;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Queue\Queue;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 use Sebwite\Git\Contracts\Manager;
 
 /**
@@ -21,9 +23,10 @@ use Sebwite\Git\Contracts\Manager;
  * @author         Codex
  * @copyright      Copyright (c) 2015, Codex. All rights reserved
  */
-class Git
+class CodexGit
 {
-    use HookableTrait;
+    use HookableTrait,
+        DispatchesJobs;
 
     /**
      * @var \Illuminate\Contracts\Filesystem\Filesystem
@@ -41,36 +44,36 @@ class Git
     protected $queue;
 
     /**
-     * @var \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Remotes\Manager
+     * @var \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager
      */
     protected $git;
 
     /**
      * Factory constructor.
      *
-     * @param \Illuminate\Contracts\Filesystem\Filesystem $files
-     * @param \Codex\Factory                              $codex
-     * @param \Illuminate\Contracts\Queue\Queue           $queue
-     * @param \Illuminate\Contracts\Cache\Repository      $cache
-     * @param \Sebwite\Git\Contracts\Manager              $git
+     * @param \Codex\Contracts\Codex|\Codex\Codex                 $parent
+     * @param \Illuminate\Contracts\Filesystem\Filesystem         $files
+     * @param \Illuminate\Contracts\Queue\Queue                   $queue
+     * @param \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager $git
      */
-    public function __construct(Filesystem $files, Codex $codex, Queue $queue, Manager $git)
+    public function __construct(Codex $parent, Filesystem $files, Queue $queue, Manager $git)
     {
+        $this->codex = $parent;
         $this->files = $files;
-        $this->codex = $codex;
         $this->queue = $queue;
-        $this->git   = $git;
+        $this->git = $git;
 
         $this->hookPoint('git:factory:done');
     }
 
-    public function gitSyncer($project)
+    public function getProjectSyncer($project)
     {
-        if (!$project instanceof Project) {
+        if ( !$project instanceof Project )
+        {
             $project = $this->codex->projects->get($project);
         }
         $syncer = app()->make(Syncer::class, [
-            'project' => $project
+            'project' => $project,
         ]);
 
         return $syncer;
@@ -78,10 +81,12 @@ class Git
 
     public function createSyncJob($project)
     {
-        if ($project instanceof Project) {
+        if ( $project instanceof Project )
+        {
             $project = $project->getName();
         }
-        $this->queue->push(Commands\SyncProject::class, compact('project'));
+
+        $this->dispatch(new SyncProject($project));
     }
 
     /**

@@ -58,7 +58,7 @@ class SyncCommand extends Command
         if ( $queue ) {
             $this->git->createSyncJob($project);
         } else {
-            $this->git->gitSyncer($project)->syncAll();
+            $this->git->getProjectSyncer($project)->syncAll();
         }
     }
 

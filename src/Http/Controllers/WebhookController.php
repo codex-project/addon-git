@@ -4,13 +4,17 @@
  *
  * MIT License and copyright information bundled with this package in the LICENSE file
  */
-namespace Codex\Hooks\Git\Http\Controllers;
+namespace Codex\Addon\Git\Http\Controllers;
 
+use Codex\Addon\Git\Commands\SyncProject;
+use Codex\Addon\Git\Console\SyncCommand;
+use Codex\Addon\Git\CodexGit;
 use Codex\Contracts\Codex;
 use Codex\Http\Controller;
+use Codex\Projects\Project;
 use Illuminate\Contracts\View\Factory as ViewFactory;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Http\Response;
-use Sebwite\Git\Contracts\Manager;
 use Sebwite\Support\Arr;
 
 /**
@@ -23,17 +27,20 @@ use Sebwite\Support\Arr;
  */
 class WebhookController extends Controller
 {
+    use DispatchesJobs;
+
+
     /**
-     * @var \Codex\Factory
+     * @var \Codex\Codex|\Codex\Contracts\Codex
      */
     protected $codex;
 
     /**
-     * @var \Codex\Hooks\Git\Contracts\Factory|\Codex\Hooks\Git\Factory
+     * @var \Codex\Addon\Git\CodexGit
      */
     protected $git;
 
-    public function __construct(Codex $codex, ViewFactory $view, Manager $git)
+    public function __construct(Codex $codex, ViewFactory $view, CodexGit $git)
     {
         parent::__construct($codex, $view);
         $this->git = $git;
@@ -41,15 +48,15 @@ class WebhookController extends Controller
 
     public function bitbucket()
     {
-        $this->codex->log('info', 'codex.hooks.git.webhook.call', [ 'remote' => 'bitbucket' ]);
+        $this->codex->log('info', 'codex.git.webhook.call', [ 'remote' => 'bitbucket' ]);
 
         $headers = Arr::only(request()->headers->all(), [
             'x-request-uuid',
             'x-event-key',
             'user-agent',
-            'x-hook-uuid'
+            'x-hook-uuid',
         ]);
-        $data    = array_dot(request()->all());
+        $data = array_dot(request()->all());
 
         $valid =
             $headers[ 'user-agent' ][ 0 ] === 'Bitbucket-Webhooks/2.0' &&
@@ -77,20 +84,19 @@ class WebhookController extends Controller
      */
     public function github()
     {
-        $this->codex->log('info', 'codex.hooks.git.webhook.call', [ 'remote' => 'github' ]);
-
+        $this->codex->log('info', 'codex.git.webhook.call', [ 'remote' => 'github' ]);
+        
         $headers = [
             'delivery'   => request()->header('x-github-delivery'),
             'event'      => request()->header('x-github-event'),
             'user-agent' => request()->header('user-agent'),
-            'signature'  => request()->header('x-hub-signature')
+            'signature'  => request()->header('x-hub-signature'),
         ];
-        $data    = array_dot(request()->all());
+        $data = array_dot(request()->all());
 
         return $this->applyToGitProjects('github', function (Project $project) use ($data, $headers)
         {
-
-            $hash = hash_hmac('sha1', file_get_contents("php://input"), $project->config('hooks.git.webhook.secret'));
+            $hash = trim(hash_hmac('sha1', file_get_contents("php://input"), $project->config('git.webhook.secret')));
 
             if ( $headers[ 'signature' ] === "sha1=$hash" )
             {
@@ -98,7 +104,7 @@ class WebhookController extends Controller
             }
             else
             {
-                return response('Invalid hash', 403);
+                return response()->json([ 'message' => 'invalid hash' ], 403);
             }
         });
     }
@@ -108,33 +114,28 @@ class WebhookController extends Controller
 
         foreach ( $this->codex->projects->all() as $project )
         {
-            $name    = $project->getName();
-            $enabled = $project->hasEnabledHook('git');
-            $webhook = $project->config('hooks.git.webhook.enabled', false);
-            if ( !$enabled || !$webhook )
+            $name = $project->getName();
+            $gitEnabled = $project->config('git.enabled', false);
+            $gitWebhookEnabled = $project->config('git.webhook.enabled', false);
+            if ( $gitEnabled === false || $gitWebhookEnabled === false )
             {
                 continue;
             }
 
+            $projectRepo = $project->config('git.owner') . '/' . $project->config('git.repository');
+            $hookRepo = call_user_func_array($closure, [ $project ]);
 
-            $projectRepo = $project->config('hooks.git.owner') . '/' . $project->config('hooks.git.repository');
-
-            $hook = call_user_func_array($closure, [ $project ]);
-
-            if ( $hook instanceof Response )
+            if ( $hookRepo instanceof Response )
             {
-                return $hook;
+                return $hookRepo;
             }
-
-            if ( $hook !== $projectRepo )
+            if ( $hookRepo !== $projectRepo )
             {
                 continue;
             }
 
-            $this->git->createSyncJob($project);
-
-            $this->codex->log('info', 'codex.hooks.git.webhook.call', [ 'remote' => $remote ]);
-
+            $this->dispatch(new SyncProject($name));
+            $this->codex->log('info', 'codex.git.webhook.call', [ 'remote' => $remote ]);
             return response('', 200);
         }
     }

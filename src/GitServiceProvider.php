@@ -2,6 +2,7 @@
 namespace Codex\Addon\Git;
 
 use Codex\Console\ListCommand;
+use Codex\Contracts\Codex;
 use Codex\Projects\Project;
 use Codex\Traits\CodexProviderTrait;
 use Sebwite\Support\ServiceProvider;
@@ -23,15 +24,21 @@ class GitServiceProvider extends ServiceProvider
         Http\HttpServiceProvider::class,
     ];
 
-    protected $shared = [
-        'codex.git' => Git::class,
-    ];
+    public function register()
+    {
+        $app = parent::register();
+        $this->codexIgnoreRoute('_git-webhook');
+        $this->codexHook('constructed', function (Codex $codex){
+            $codex->extend('git', CodexGit::class);
+        });
+        return $app;
+    }
 
     public function boot()
     {
+
         $app = parent::boot();
         $this->codexProjectConfig('codex-git.default-project-config');
-        $this->codexIgnoreRoute('_git-webhook');
 
         ListCommand::macro('listGitProjects', function () {
             /** @var ListCommand $this */

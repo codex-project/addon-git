@@ -1,43 +1,48 @@
 <?php
-/**
- * Part of the Caffeinated PHP packages.
- *
- * MIT License and copyright information bundled with this package in the LICENSE file
- */
 
 namespace Codex\Addon\Git\Commands;
 
 use Codex\Contracts\Codex;
-use Illuminate\Contracts\Queue\Job;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
 /**
- * This is the CodexSyncGithubProject.
+ * This is the class SyncProject.
  *
- * @package        Codex\Core
- * @author         Caffeinated Dev Team
- * @copyright      Copyright (c) 2015, Caffeinated
- * @license        https://tldrlegal.com/license/mit-license MIT License
+ * @package        Codex\Addon
+ * @author         CLI
+ * @copyright      Copyright (c) 2015, CLI. All rights reserved
  */
-class SyncProject
+class SyncProject implements ShouldQueue
 {
-    protected $codex;
+
+    use InteractsWithQueue;
+
+    /** @var string */
+    protected $project;
 
     /**
-     * @param \Codex\Contracts\Codex|\Codex\Factory $codex
+     * @param                          string     $project The name of the project
+     * @param \Codex\Contracts\Codex|\Codex\Codex $codex   The codex instance
      */
-    public function __construct(Codex $codex)
+    public function __construct($project)
     {
-        $this->codex = $codex;
+        $this->project = $project;
+
     }
 
-    public function fire(Job $job, $data)
+    public function handle()
     {
-        $this->codex->log('alert', 'codex.hooks.git.sync.project.command', [
-            'jobName'     => $job->getName(),
-            'jobAttempts' => $job->attempts(),
-            'project'     => $data[ 'project' ]
+        codex()->log('alert', 'codex.hooks.git.sync.project.command', [
+            'jobName'     => $this->job->getName(),
+            'jobAttempts' => $this->attempts(),
+            'project'     => $this->project,
         ]);
-        $job->delete();
-        $this->codex->projects->get($data[ 'project' ])->gitSyncer()->syncAll();
+
+
+        codex()->
+
+
+        app('codex.git')->gitSyncer($this->project)->syncAll();
     }
 }

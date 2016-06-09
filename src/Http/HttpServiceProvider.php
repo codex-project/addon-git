@@ -28,7 +28,8 @@ class HttpServiceProvider extends ServiceProvider
     /**
      * Define your route model bindings, pattern filters, etc.
      *
-     * @param  \Illuminate\Routing\Router  $router
+     * @param  \Illuminate\Routing\Router $router
+     *
      * @return void
      */
     public function boot(Router $router)
@@ -41,12 +42,18 @@ class HttpServiceProvider extends ServiceProvider
     /**
      * Define the routes for the application.
      *
-     * @param  \Illuminate\Routing\Router  $router
+     * @param  \Illuminate\Routing\Router $router
+     *
      * @return void
      */
     public function map(Router $router)
     {
-        $router->group(['prefix' => config('codex.base_route'), 'namespace' => $this->namespace], function ($router) {
+        $router->group([
+            'prefix'    => config('codex.base_route') . '/' . config('codex-git.route_prefix', '_git-webhook'),
+            'namespace' => $this->namespace,
+            'as'        => 'codex.hooks.git.webhook.',
+        ], function ($router)
+        {
             require __DIR__ . '/routes.php';
         });
     }
