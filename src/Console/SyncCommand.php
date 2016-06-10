@@ -7,7 +7,10 @@
  */
 namespace Codex\Addon\Git\Console;
 
+use Codex\Addon\Git\Jobs\SyncProject;
 use Codex\Addon\Git\Syncer;
+use Codex\Projects\Project;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 
 /**
  * This is the CoreListCommand class.
@@ -21,6 +24,8 @@ use Codex\Addon\Git\Syncer;
  */
 class SyncCommand extends Command
 {
+    use DispatchesJobs;
+    
     protected $signature = 'codex:git:sync {name? : The name of the project}
                                           {--queue : Put the sync job on the queue}
                                           {--all : Sync all projects}';
@@ -29,21 +34,12 @@ class SyncCommand extends Command
 
     public function handle()
     {
-
-        $projects = [ ];
-        foreach ( $this->codex->projects->all() as $project ) {
-            if ( $project->config('git', false) !== false ) {
-                $projects[] = $project->getName();
-            }
-        }
-
-
+        $projects = $this->codex->git->getEnabledProjects();
         $this->startListeners();
-
 
         if ( $this->option('all') ) {
             foreach ( $projects as $project ) {
-                $this->comment("Starting sync job for [{$project}]" . ($this->option('queue') ? ' and pushed it onto the queue.' : '. This might take a while.'));
+                $this->comment("Starting sync job for [{$project->getName()}]" . ($this->option('queue') ? ' and pushed it onto the queue.' : '. This might take a while.'));
                 $this->sync($project, $this->option('queue'));
             }
         } else {
@@ -55,8 +51,11 @@ class SyncCommand extends Command
 
     protected function sync($project, $queue = false)
     {
-        if ( $queue ) {
-            $this->git->createSyncJob($project);
+        if($project instanceof Project){
+            $project = $project->getName();
+        }
+        if ( $queue === true ) {
+            $this->dispatch(new SyncProject($project));
         } else {
             $this->git->getProjectSyncer($project)->syncAll();
         }

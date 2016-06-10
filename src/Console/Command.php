@@ -7,7 +7,6 @@
  */
 namespace Codex\Addon\Git\Console;
 
-use Codex\Addon\Git\CodexGit;
 use Codex\Contracts\Codex;
 use Illuminate\Contracts\Queue\Queue;
 
@@ -45,11 +44,11 @@ abstract class Command extends \Illuminate\Console\Command
      * @param \Illuminate\Contracts\Queue\Queue                           $queue
      * @param \Codex\Hooks\Git\Contracts\Factory|\Codex\Hooks\Git\Factory $git
      */
-    public function __construct(Codex $codex, Queue $queue, CodexGit $git)
+    public function __construct(Codex $codex, Queue $queue)
     {
         parent::__construct();
         $this->codex = $codex;
         $this->queue = $queue;
-        $this->git   = $git;
+        $this->git   = $codex->git;
     }
 }

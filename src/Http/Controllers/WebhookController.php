@@ -6,7 +6,7 @@
  */
 namespace Codex\Addon\Git\Http\Controllers;
 
-use Codex\Addon\Git\Commands\SyncProject;
+use Codex\Addon\Git\Jobs\SyncProject;
 use Codex\Addon\Git\Console\SyncCommand;
 use Codex\Addon\Git\CodexGit;
 use Codex\Contracts\Codex;

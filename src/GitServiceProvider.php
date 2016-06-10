@@ -24,6 +24,10 @@ class GitServiceProvider extends ServiceProvider
         Http\HttpServiceProvider::class,
     ];
 
+    protected $bindings = [
+        'codex.git.syncer' => Syncer::class
+    ];
+
     public function register()
     {
         $app = parent::register();

@@ -6,7 +6,7 @@
  */
 namespace Codex\Addon\Git;
 
-use Codex\Addon\Git\Commands\SyncProject;
+use Codex\Addon\Git\Jobs\SyncProject;
 use Codex\Contracts\Codex;
 use Codex\Projects\Project;
 use Codex\Traits\HookableTrait;
@@ -66,28 +66,41 @@ class CodexGit
         $this->hookPoint('git:factory:done');
     }
 
+    /**
+     * @param $project
+     *
+     * @return \Codex\Addon\Git\Syncer
+     * @throws \Codex\Exception\CodexException
+     */
     public function getProjectSyncer($project)
     {
         if ( !$project instanceof Project )
         {
             $project = $this->codex->projects->get($project);
         }
-        $syncer = app()->make(Syncer::class, [
+        $syncer = app()->make('codex.git.syncer', [
             'project' => $project,
         ]);
 
         return $syncer;
     }
 
-    public function createSyncJob($project)
+    /**
+     * Get all projects that have the git addon enabled.
+     * 
+     * @return Project[]
+     */
+    public function getEnabledProjects()
     {
-        if ( $project instanceof Project )
-        {
-            $project = $project->getName();
-        }
-
-        $this->dispatch(new SyncProject($project));
+        return array_filter($this->codex->projects->all(), function(Project $project){
+            return $project->config('git.enabled', false) === true;
+        });
     }
+    
+    
+    
+    
+    
 
     /**
      * get fsm value
@@ -157,30 +170,6 @@ class CodexGit
     public function setQueue($queue)
     {
         $this->queue = $queue;
-
-        return $this;
-    }
-
-    /**
-     * get cache value
-     *
-     * @return Cache
-     */
-    public function getCache()
-    {
-        return $this->cache;
-    }
-
-    /**
-     * Set the cache value
-     *
-     * @param Cache $cache
-     *
-     * @return Factory
-     */
-    public function setCache($cache)
-    {
-        $this->cache = $cache;
 
         return $this;
     }
