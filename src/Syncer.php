@@ -32,32 +32,24 @@ class Syncer
      */
     protected $remote;
 
-    /**
-     * @var \Sebwite\Git\Contracts\Manager
-     */
+    /** @var \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager */
     protected $git;
 
-    /**
-     * @var \Codex\Projects\Project
-     */
+    /** @var \Codex\Projects\Project */
     protected $project;
 
-    /**
-     * @var \Illuminate\Contracts\Cache\Repository
-     */
+    /** @var \Illuminate\Contracts\Cache\Repository */
     protected $cache;
 
-    /**
-     * @var \Codex\Codex|\Codex\Contracts\Codex
-     */
+    /** @var \Codex\Codex|\Codex\Contracts\Codex */
     protected $codex;
 
     /**
      * Syncer constructor.
      *
-     * @param \Codex\Projects\Project                $project
-     * @param \Sebwite\Git\Contracts\Manager         $git
-     * @param \Illuminate\Contracts\Cache\Repository $cache
+     * @param \Codex\Projects\Project                             $project
+     * @param \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager $git
+     * @param \Illuminate\Contracts\Cache\Repository              $cache
      */
     public function __construct(Project $project, Manager $git, Repository $cache)
     {
@@ -148,13 +140,13 @@ class Syncer
         foreach ( $branches as $branch ) {
             $this->syncRef($branch, 'branch');
             $current++;
-            $this->fire('tick', [ 'branch', $current, count($branches), $branches, $branch ]);
+            $this->fire('tick', [ 'branch', $current, count($branches), $branch ]);
             #$tick($current, count($branches), $branches);
         }
         foreach ( $versions as $version ) {
             $this->syncRef($version, 'tag');
             $current++;
-            $this->fire('tick', [ 'version', $current, count($versions), $versions, $version ]);
+            $this->fire('tick', [ 'version', $current, count($versions), $version ]);
             #$tick($current, count($version), $version);
         }
     }
@@ -204,7 +196,7 @@ class Syncer
             $dir       = path_get_directory($localPath);
             $this->ensureDirectory($dir);
             $rfs->exists($file) && $this->fs->put($localPath, $rfs->get($file));
-            $this->fire('tick.file', [ $current, $total, $files, $file, $syncer ]);
+            $this->fire('tick.file', [ $current, $total, $file, $syncer ]);
         }
 
         // index.md resolving
@@ -238,7 +230,7 @@ class Syncer
         $branches       = $remote->getBranches($repo, $owner);
 
         foreach ( $branches as $branch => $sha ) {
-            if ( !in_array('*', $allowedBranches, true) and !in_array($branch, $allowedBranches, true) ) {
+            if ( !in_array('*', $allowedBranches, true) && !in_array($branch, $allowedBranches, true) ) {
                 continue;
             }
             $cacheKey        = md5($this->project->getName() . $branch);
@@ -263,7 +255,11 @@ class Syncer
         $remote              = $this->client($this->setting('connection'));
         $currentVersions     = $this->project->getRefs();
         $allowedVersionRange = new expression($this->setting('sync.constraints.versions'));
-        $tags                = $remote->getTags($this->setting('repository'), $this->setting('owner')); #$this->remote->repositories()->tags();
+        $tags                = $remote->getTags($this->setting('repository'), $this->setting('owner'));
+        $skipPatch           = $this->setting('sync.constraints.skip_patch_versions', false);
+        $skipMinor           = $this->setting('sync.constraints.skip_minor_versions', false);
+        $skipPatch           = $skipMinor === true ? true : $skipPatch; // if we skip minors, we automaticly skip patches as well
+
         $this->fire('versions.start', [ $tags ]);
 
         foreach ( $tags as $tag => $sha ) {
@@ -273,9 +269,19 @@ class Syncer
             catch (SemVerException $e) {
                 continue;
             }
-            if ( $version->satisfies($allowedVersionRange) === false or in_array($version->getVersion(), $currentVersions, true) ) {
+
+            // Check all version constraints
+            if ( $version->satisfies($allowedVersionRange) === false || in_array($version->getVersion(), $currentVersions, true) ) {
                 continue;
             }
+            if ( $skipPatch === true && $version->getPatch() !== 0 ) {
+                continue;
+            }
+            if ( $skipMinor === true && $version->getMinor() !== 0 ) {
+                continue;
+            }
+
+            // This version is inside constraints, add it
             $versionsToSync[] = $version;
         }
 
@@ -380,8 +386,6 @@ class Syncer
     {
         return $this->codex;
     }
-
-
 
 
 }

@@ -10,7 +10,7 @@ use Codex\Addon\Git\Jobs\SyncProject;
 use Codex\Addon\Git\Console\SyncCommand;
 use Codex\Addon\Git\CodexGit;
 use Codex\Contracts\Codex;
-use Codex\Http\Controller;
+use Codex\Http\Controllers\Controller;
 use Codex\Projects\Project;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Foundation\Bus\DispatchesJobs;

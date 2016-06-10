@@ -64,11 +64,11 @@ class SyncCommand extends Command
     protected function startListeners()
     {
         $listeners = [ //->project->getName()
-            'tick:file' => function(Syncer $syncer, $current, $total, $all, $now){
+            'tick:file' => function(Syncer $syncer, $current, $total, $now){
                 $name = $syncer->getProject()->getName();
                 $this->line("tick:file ($current/$total) [$name:$now]");
             },
-            'tick'            => function (Syncer $syncer, $type, $current, $total, $all, $now) {
+            'tick'            => function (Syncer $syncer, $type, $current, $total, $now) {
                 $name = $syncer->getProject()->getName();
                 $this->line("tick ($current/$total) [$name:$type:$now]");
             },
