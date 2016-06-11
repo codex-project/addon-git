@@ -70,7 +70,7 @@ class Syncer
      *
      * @return mixed
      */
-    protected function setting($key, $default = null)
+    public function setting($key, $default = null)
     {
         return array_get($this->project->config('git', [ ]), $key, $default);
     }
@@ -82,7 +82,7 @@ class Syncer
      *
      * @return \Sebwite\Git\Remotes\Remote
      */
-    protected function client($connection = null)
+    public function client($connection = null)
     {
         $connection = $connection ?: $this->setting('connection');
         return $this->git->connection($connection);
@@ -96,7 +96,8 @@ class Syncer
     protected function ensureDirectory($path)
     {
 
-        if ( !$this->fs->exists($path) ) {
+        if ( !$this->fs->exists($path) )
+        {
             $this->fs->makeDirectory($path);
         }
     }
@@ -108,9 +109,10 @@ class Syncer
      * @param       $message
      * @param array $context
      */
-    protected function log($level, $message, $context = [ ])
+    public function log($level, $message, $context = [ ])
     {
         $this->codex->log($level, $message, $context);
+        return $message;
     }
 
     /**
@@ -137,13 +139,15 @@ class Syncer
         $current  = 0;
         $branches = $this->getBranchesToSync();
         $versions = $this->getVersionsToSync();
-        foreach ( $branches as $branch ) {
+        foreach ( $branches as $branch )
+        {
             $this->syncRef($branch, 'branch');
             $current++;
             $this->fire('tick', [ 'branch', $current, count($branches), $branch ]);
             #$tick($current, count($branches), $branches);
         }
-        foreach ( $versions as $version ) {
+        foreach ( $versions as $version )
+        {
             $this->syncRef($version, 'tag');
             $current++;
             $this->fire('tick', [ 'version', $current, count($versions), $version ]);
@@ -161,50 +165,17 @@ class Syncer
     public function syncRef($ref, $type, Closure $progress = null)
     {
         $this->fire('start', [ $ref, $type ]);
-        $owner     = $this->setting('owner');
-        $repo      = $this->setting('repository');
-        $docPath   = $this->setting('sync.paths.docs');
-        $menuPath  = $this->setting('sync.paths.menu');
-        $indexPath = $this->setting('sync.paths.index');
+        $owner          = $this->setting('owner');
+        $repo           = $this->setting('repository');
+        $remote         = $this->client($this->setting('connection'));
+        $destinationDir = $this->project->path($ref);
 
-        $remote = $this->client($this->setting('connection'));
-        $rfs    = $remote->getFilesystem($repo, $owner, $ref);
-
-        $files = $rfs->allFiles($docPath);
-        $total = count($files);
-
-
-        if ( !$rfs->exists($indexPath) ) {
-            return $this->log('error', 'syncRef could not find the index file', [ $indexPath ]);
-        }
-
-        if ( !$rfs->exists($menuPath) ) {
-            return $this->log('error', 'syncRef could not find the menu file', [ $indexPath ]);
-        }
-
-        $destinationDir = $ref;
         $this->ensureDirectory($destinationDir);
 
-        $syncer = $this;
-        foreach ( $files as $current => $file ) {
-            $localPath = path_relative($file, $docPath);
+        $this->createDownloader($this->setting('downloader', 'zip'))->download($owner, $repo, $type, $ref);
 
-            if ( $progress instanceof Closure ) {
-                $this->project->getContainer()->call($progress, compact('current', 'total', 'file', 'files', 'syncer'));
-            }
-            $localPath = path_join($destinationDir, $localPath);
-            $dir       = path_get_directory($localPath);
-            $this->ensureDirectory($dir);
-            $rfs->exists($file) && $this->fs->put($localPath, $rfs->get($file));
-            $this->fire('tick.file', [ $current, $total, $file, $syncer ]);
-        }
-
-        // index.md resolving
-        $indexFile = $rfs->get($indexPath);
-        $this->fs->put(path_join($destinationDir, 'index.md'), $indexFile);
-
-
-        if ( $type === 'branch' ) {
+        if ( $type === 'branch' )
+        {
             $branch = $remote->getBranch($this->setting('repository'), $ref, $this->setting('owner'));
             $this->cache->forever(md5($this->project->getName() . $branch[ 'name' ]), $branch[ 'sha' ]);
         }
@@ -218,7 +189,8 @@ class Syncer
     public function getBranchesToSync()
     {
         $allowedBranches = $this->setting('sync.constraints.branches');
-        if ( count($allowedBranches) === 0 ) {
+        if ( count($allowedBranches) === 0 )
+        {
             return [ ];
         }
         $this->fire('branches.start', [ $allowedBranches ]);
@@ -229,15 +201,18 @@ class Syncer
         $owner          = $this->setting('owner');
         $branches       = $remote->getBranches($repo, $owner);
 
-        foreach ( $branches as $branch => $sha ) {
-            if ( !in_array('*', $allowedBranches, true) && !in_array($branch, $allowedBranches, true) ) {
+        foreach ( $branches as $branch => $sha )
+        {
+            if ( !in_array('*', $allowedBranches, true) && !in_array($branch, $allowedBranches, true) )
+            {
                 continue;
             }
             $cacheKey        = md5($this->project->getName() . $branch);
             $cached          = $this->cache->get($cacheKey, false);
             $destinationPath = path_join($this->project->getPath(), $branch);
 
-            if ( $cached !== $sha || $cached === false || !$this->fs->exists($destinationPath) ) {
+            if ( $cached !== $sha || $cached === false || !$this->fs->exists($destinationPath) )
+            {
                 $branchesToSync[] = $branch;
             }
         }
@@ -262,22 +237,28 @@ class Syncer
 
         $this->fire('versions.start', [ $tags ]);
 
-        foreach ( $tags as $tag => $sha ) {
-            try {
+        foreach ( $tags as $tag => $sha )
+        {
+            try
+            {
                 $version = new version($tag);
             }
-            catch (SemVerException $e) {
+            catch (SemVerException $e)
+            {
                 continue;
             }
 
             // Check all version constraints
-            if ( $version->satisfies($allowedVersionRange) === false || in_array($version->getVersion(), $currentVersions, true) ) {
+            if ( $version->satisfies($allowedVersionRange) === false || in_array($version->getVersion(), $currentVersions, true) )
+            {
                 continue;
             }
-            if ( $skipPatch === true && $version->getPatch() !== 0 ) {
+            if ( $skipPatch === true && $version->getPatch() !== 0 )
+            {
                 continue;
             }
-            if ( $skipMinor === true && $version->getMinor() !== 0 ) {
+            if ( $skipMinor === true && $version->getMinor() !== 0 )
+            {
                 continue;
             }
 
@@ -326,7 +307,7 @@ class Syncer
     }
 
     /**
-     * @return Manager
+     * @return \Sebwite\Git\Manager
      */
     public function getGit()
     {
@@ -387,5 +368,17 @@ class Syncer
         return $this->codex;
     }
 
+    /**
+     * @param $name
+     *
+     * @return Downloader\DownloadInterface|Downloader\AbstractDownloader|Downloader\GitDownloader
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     */
+    public function createDownloader($name)
+    {
+        $class = ucfirst($name) . 'Downloader';
+        $class = 'Codex\Addon\Git\Downloader\\' . $class;
+        return app()->build($class, [ $this ]);
+    }
 
 }

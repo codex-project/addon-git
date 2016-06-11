@@ -25,6 +25,9 @@ return [
             'repository' => '',
             // The connection name (defined in services.php
             'connection' => '',
+            // The downloader (git api vs zip downloader)
+            'downloader' => 'zip',
+
             'sync'       => [
                 'constraints' => [
                     // Branches to sync
