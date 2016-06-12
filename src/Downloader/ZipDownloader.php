@@ -72,7 +72,7 @@ class ZipDownloader extends AbstractDownloader
         $pfs->put(path_join($ref, 'menu.yml'), $fs->get(path_join($tmpExtractedPath, $this->menuPath)));
 
         $fs->deleteDirectory($tmpExtractedPath);
-        $fs->delete()
+        $fs->delete("{$tmpPath}.zip");
         return $this;
     }
 
