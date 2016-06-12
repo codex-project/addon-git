@@ -26,7 +26,7 @@ return [
             // The connection name (defined in services.php
             'connection' => '',
             // The downloader (git api vs zip downloader)
-            'downloader' => 'zip',
+            'downloader' => 'git',
 
             'sync'       => [
                 'constraints' => [
