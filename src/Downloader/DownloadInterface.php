@@ -20,7 +20,7 @@ interface DownloadInterface
      *
      * @return DownloadInterface
      */
-    public function download($owner, $repo, $type, $ref);
+    public function download($owner, $repo, $ref);
 
     /**
      * Move the downloaded files to a directory

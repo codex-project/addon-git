@@ -19,7 +19,7 @@ class ZipDownloader extends AbstractDownloader
 
     protected $path;
 
-    public function download($owner, $repo, $type, $ref)
+    public function download($owner, $repo, $ref)
     {
 
         if ( null === self::$hasSystemUnzip )

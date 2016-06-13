@@ -9,6 +9,7 @@
 namespace Codex\Addon\Git\Downloader;
 
 
+use Sebwite\Support\Arr;
 use Sebwite\Support\Str;
 
 class GitDownloader extends AbstractDownloader
@@ -24,7 +25,7 @@ class GitDownloader extends AbstractDownloader
      *
      * @return DownloadInterface
      */
-    public function download($owner, $repo, $type, $ref)
+    public function download($owner, $repo, $ref)
     {
         // local filesystem
         $fs = $this->getFs();
@@ -34,6 +35,7 @@ class GitDownloader extends AbstractDownloader
         $rfs = $this->remote->getFilesystem($repo, $owner, $ref);
 
         $files = $rfs->allFiles($this->docPath);
+        $files = Arr::without($files, [ $this->indexPath, $this->menuPath ]);
         $total = count($files);
 
         if ( !$rfs->exists($this->indexPath) )
@@ -46,31 +48,17 @@ class GitDownloader extends AbstractDownloader
             return $this->syncer->log('error', 'syncRef could not find the menu file', [ $this->menuPath ]);
         }
 
-
         foreach ( $files as $current => $filePath )
         {
             $destPath = path_relative($filePath, $this->docPath);
-            #$localPath = path_join($destinationDir, $localPath);
-            $dir = path_get_directory($destPath);
-            if ( $pfs->exists($dir) === false )
-            {
-                $pfs->makeDirectory($dir);
-            }
             if ( $rfs->exists($filePath) )
             {
-                #$destPath = Str::ensureRight(path_join($tmpExtractedPath, $this->docPath), DIRECTORY_SEPARATOR);
-                #$destPath = Str::removeLeft($filePath, $destPath);
                 $pfs->put(path_join($ref, $destPath), $rfs->get($filePath));
-
-                #path_get_directory($)
-                #$pfs->exists()
-                #$pfs->put()
-                #$this->fs->put($localPath, $rfs->get($filePath));
             }
             $this->getSyncer()->fire('tick.file', [ $current, $total, $filePath, $this->syncer, $this ]);
         }
 
-        // index.md resolving
+        // index and menu resolving
         $pfs->put(path_join($ref, 'index.md'), $rfs->get($this->indexPath));
         $pfs->put(path_join($ref, 'menu.yml'), $rfs->get($this->menuPath));
 

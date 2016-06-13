@@ -168,11 +168,8 @@ class Syncer
         $owner          = $this->setting('owner');
         $repo           = $this->setting('repository');
         $remote         = $this->client($this->setting('connection'));
-        $destinationDir = $this->project->path($ref);
 
-        $this->ensureDirectory($destinationDir);
-
-        $this->createDownloader($this->setting('downloader', 'zip'))->download($owner, $repo, $type, $ref);
+        $this->createDownloader($this->setting('downloader'))->download($owner, $repo, $ref);
 
         if ( $type === 'branch' )
         {
