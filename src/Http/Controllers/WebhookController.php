@@ -6,7 +6,7 @@
  */
 namespace Codex\Addon\Git\Http\Controllers;
 
-use Codex\Addon\Git\Jobs\SyncProject;
+use Codex\Addon\Git\Jobs\SyncJob;
 use Codex\Addon\Git\Console\SyncCommand;
 use Codex\Addon\Git\CodexGit;
 use Codex\Contracts\Codex;
@@ -134,7 +134,7 @@ class WebhookController extends Controller
                 continue;
             }
 
-            $this->dispatch(new SyncProject($name));
+            $this->dispatch(new SyncJob($name));
             $this->codex->log('info', 'codex.git.webhook.call', [ 'remote' => $remote ]);
             return response('', 200);
         }

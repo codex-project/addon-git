@@ -165,11 +165,21 @@ class Syncer
     public function syncRef($ref, $type, Closure $progress = null)
     {
         $this->fire('start', [ $ref, $type ]);
-        $owner          = $this->setting('owner');
-        $repo           = $this->setting('repository');
-        $remote         = $this->client($this->setting('connection'));
+        $owner      = $this->setting('owner');
+        $repo       = $this->setting('repository');
+        $remote     = $this->client($connection = $this->setting('connection'));
+        $downloader = $this->setting('downloader');
+        $config     = $this->git->getConfig($connection);
+        $driver     = $config[ 'driver' ];
 
-        $this->createDownloader($this->setting('downloader'))->download($owner, $repo, $ref);
+        if($driver === 'github'){
+            // Downloading large files with the git downloader fails.
+            // The Github api can get 1MB max blob size.
+            // So for github drive, we hard define zip as downloader
+            $downloader = 'zip';
+        }
+
+        $this->createDownloader($downloader)->download($owner, $repo, $ref);
 
         if ( $type === 'branch' )
         {

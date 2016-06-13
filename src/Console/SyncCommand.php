@@ -7,7 +7,7 @@
  */
 namespace Codex\Addon\Git\Console;
 
-use Codex\Addon\Git\Jobs\SyncProject;
+use Codex\Addon\Git\Jobs\SyncJob;
 use Codex\Addon\Git\Syncer;
 use Codex\Projects\Project;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -55,7 +55,7 @@ class SyncCommand extends Command
             $project = $project->getName();
         }
         if ( $queue === true ) {
-            $this->dispatch(new SyncProject($project));
+            $this->dispatch(new SyncJob($project));
         } else {
             $this->git->getProjectSyncer($project)->syncAll();
         }

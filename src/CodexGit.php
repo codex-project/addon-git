@@ -6,7 +6,7 @@
  */
 namespace Codex\Addon\Git;
 
-use Codex\Addon\Git\Jobs\SyncProject;
+use Codex\Addon\Git\Jobs\SyncJob;
 use Codex\Contracts\Codex;
 use Codex\Projects\Project;
 use Codex\Traits\HookableTrait;

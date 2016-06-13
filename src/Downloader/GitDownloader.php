@@ -10,7 +10,6 @@ namespace Codex\Addon\Git\Downloader;
 
 
 use Sebwite\Support\Arr;
-use Sebwite\Support\Str;
 
 class GitDownloader extends AbstractDownloader
 {

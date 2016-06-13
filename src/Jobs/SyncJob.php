@@ -11,7 +11,7 @@ use Codex\Support\QueuedJob;
  * @author         CLI
  * @copyright      Copyright (c) 2015, CLI. All rights reserved
  */
-class SyncProject extends QueuedJob
+class SyncJob extends QueuedJob
 {
     /** @var string */
     protected $project;

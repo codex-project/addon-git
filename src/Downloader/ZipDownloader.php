@@ -45,33 +45,41 @@ class ZipDownloader extends AbstractDownloader
 
         $fs      = $this->getFs();
         $pfs     = $this->project->getFiles();
+
+
+        // prepare new temporary directory
         $tmpPath = storage_path("codex/git/{$owner}.{$repo}.{$ref}");
+        if($fs->isDirectory($tmpPath)){
+            $fs->deleteDirectory($tmpPath);
+        }
         $fs->ensureDirectory($tmpPath);
 
+        // todo implement https://developer.github.com/v3/repos/contents/#get-archive-link
         $zip = new ZipArchive;
         $zip->open($this->remote->downloadArchive($repo, $ref, "{$tmpPath}.zip", $owner));
         $zip->extractTo($tmpPath);
-        $tmpExtractedPath = path_join($tmpPath, "{$repo}-{$ref}");
 
+        $tmpExtractedPath = $fs->globule($glob = path_join($tmpPath, '*'))[0];
         $files = collect($fs->allFiles(path_join($tmpExtractedPath, $this->docPath)))
             ->transform(function ($item)
             {
                 return (string)$item;
             })
             ->toArray();
+
         $total = count($files);
         foreach ( $files as $current => $filePath )
         {
             $destPath = Str::ensureRight(path_join($tmpExtractedPath, $this->docPath), DIRECTORY_SEPARATOR);
             $destPath = Str::removeLeft($filePath, $destPath);
             $pfs->put(path_join($ref, $destPath), $fs->get($filePath));
-            $this->getSyncer()->fire('tick.file', [ $current, $total, $filePath, $this->syncer, $this ]);
+            $this->getSyncer()->fire('tick.file', [ $current, $total, $destPath, $this->syncer, $this ]);
         }
 
         $pfs->put(path_join($ref, 'index.md'), $fs->get(path_join($tmpExtractedPath, $this->indexPath)));
         $pfs->put(path_join($ref, 'menu.yml'), $fs->get(path_join($tmpExtractedPath, $this->menuPath)));
 
-        $fs->deleteDirectory($tmpExtractedPath);
+        $fs->deleteDirectory($tmpPath);
         $fs->delete("{$tmpPath}.zip");
         return $this;
     }
