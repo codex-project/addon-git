@@ -7,7 +7,7 @@
  */
 namespace Codex\Addon\Git\Console;
 
-use Codex\Contracts\Codex;
+use Codex\Codex;
 use Illuminate\Contracts\Queue\Queue;
 
 /**

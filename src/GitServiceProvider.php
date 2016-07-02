@@ -2,7 +2,7 @@
 namespace Codex\Addon\Git;
 
 use Codex\Console\ListCommand;
-use Codex\Contracts\Codex;
+use Codex\Codex;
 use Codex\Projects\Project;
 use Codex\Traits\CodexProviderTrait;
 use Sebwite\Support\ServiceProvider;

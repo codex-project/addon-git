@@ -7,7 +7,7 @@
 namespace Codex\Addon\Git;
 
 use Codex\Addon\Git\Jobs\SyncJob;
-use Codex\Contracts\Codex;
+use Codex\Codex;
 use Codex\Projects\Project;
 use Codex\Traits\HookableTrait;
 use Illuminate\Contracts\Cache\Repository as Cache;
@@ -87,7 +87,7 @@ class CodexGit
 
     /**
      * Get all projects that have the git addon enabled.
-     * 
+     *
      * @return Project[]
      */
     public function getEnabledProjects()
@@ -96,11 +96,11 @@ class CodexGit
             return $project->config('git.enabled', false) === true;
         });
     }
-    
-    
-    
-    
-    
+
+
+
+
+
 
     /**
      * get fsm value

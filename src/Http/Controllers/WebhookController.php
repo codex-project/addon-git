@@ -9,7 +9,7 @@ namespace Codex\Addon\Git\Http\Controllers;
 use Codex\Addon\Git\Jobs\SyncJob;
 use Codex\Addon\Git\Console\SyncCommand;
 use Codex\Addon\Git\CodexGit;
-use Codex\Contracts\Codex;
+use Codex\Codex;
 use Codex\Http\Controllers\Controller;
 use Codex\Projects\Project;
 use Illuminate\Contracts\View\Factory as ViewFactory;
@@ -85,7 +85,7 @@ class WebhookController extends Controller
     public function github()
     {
         $this->codex->log('info', 'codex.git.webhook.call', [ 'remote' => 'github' ]);
-        
+
         $headers = [
             'delivery'   => request()->header('x-github-delivery'),
             'event'      => request()->header('x-github-event'),
