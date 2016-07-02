@@ -6,9 +6,9 @@
  */
 namespace Codex\Addon\Git\Http\Controllers;
 
-use Codex\Addon\Git\Jobs\SyncJob;
-use Codex\Addon\Git\Console\SyncCommand;
 use Codex\Addon\Git\CodexGit;
+use Codex\Addon\Git\Console\SyncCommand;
+use Codex\Addon\Git\Jobs\SyncJob;
 use Codex\Codex;
 use Codex\Http\Controllers\Controller;
 use Codex\Projects\Project;
@@ -65,12 +65,12 @@ class WebhookController extends Controller
 
         if ( !$valid )
         {
+            $this->codex->log('info', 'codex.git.webhook.invalid', [ 'remote' => 'bitbucket' ]);
             return response('Invalid headzors', 500);
         }
 
         return $this->applyToGitProjects('bitbucket', function () use ($data)
         {
-
             return $data[ 'repository.full_name' ];
         });
     }
@@ -97,13 +97,22 @@ class WebhookController extends Controller
         return $this->applyToGitProjects('github', function (Project $project) use ($data, $headers)
         {
             $hash = trim(hash_hmac('sha1', file_get_contents("php://input"), $project->config('git.webhook.secret')));
+            $valid = $headers[ 'signature' ] === "sha1=$hash";
 
-            if ( $headers[ 'signature' ] === "sha1=$hash" )
+            $this->codex->log('info', 'codex.git.webhook.call.data', [
+                'signature' => $headers[ 'signature' ],
+                'secret'    => $project->config('git.webhook.secret'),
+                'hash'      => $hash,
+                'valid'     => $valid,
+            ]);
+
+            if ( $valid )
             {
                 return strtolower($data[ 'repository.full_name' ]);
             }
             else
             {
+                $this->codex->log('info', 'codex.git.webhook.invalid', [ 'remote' => 'github' ]);
                 return response()->json([ 'message' => 'invalid hash' ], 403);
             }
         });
@@ -115,9 +124,8 @@ class WebhookController extends Controller
         foreach ( $this->codex->projects->all() as $project )
         {
             $name = $project->getName();
-            $gitEnabled = $project->config('git.enabled', false);
-            $gitWebhookEnabled = $project->config('git.webhook.enabled', false);
-            if ( $gitEnabled === false || $gitWebhookEnabled === false )
+
+            if ( ! $project->config('git.enabled', false) || ! $project->config('git.webhook.enabled', false) || $project->config('git.connection') !== $remote)
             {
                 continue;
             }
@@ -135,7 +143,8 @@ class WebhookController extends Controller
             }
 
             $this->dispatch(new SyncJob($name));
-            $this->codex->log('info', 'codex.git.webhook.call', [ 'remote' => $remote ]);
+            $this->codex->log('info', 'codex.git.webhook.success', [ 'remote' => $remote, 'name' => $name ]);
+
             return response('', 200);
         }
     }
