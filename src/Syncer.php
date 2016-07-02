@@ -41,7 +41,7 @@ class Syncer
     /** @var \Illuminate\Contracts\Cache\Repository */
     protected $cache;
 
-    /** @var \Codex\Codex|\Codex\Contracts\Codex */
+    /** @var \Codex\Codex */
     protected $codex;
 
     /**
@@ -368,7 +368,7 @@ class Syncer
     }
 
     /**
-     * @return \Codex\Codex|\Codex\Contracts\Codex
+     * @return \Codex\Codex
      */
     public function getCodex()
     {

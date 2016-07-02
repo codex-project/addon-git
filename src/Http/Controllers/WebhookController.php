@@ -31,7 +31,7 @@ class WebhookController extends Controller
 
 
     /**
-     * @var \Codex\Codex|\Codex\Contracts\Codex
+     * @var \Codex\Codex
      */
     protected $codex;
 

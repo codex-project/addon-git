@@ -23,7 +23,7 @@ use Illuminate\Contracts\Queue\Queue;
 abstract class Command extends \Illuminate\Console\Command
 {
     /**
-     * @var \Codex\Contracts\Codex|\Codex\Codex
+     * @var \Codex\Codex
      */
     protected $codex;
 
@@ -40,7 +40,7 @@ abstract class Command extends \Illuminate\Console\Command
     /**
      * Command constructor.
      *
-     * @param \Codex\Contracts\Codex|\Codex\Factory                       $codex
+     * @param \Codex\Factory                       $codex
      * @param \Illuminate\Contracts\Queue\Queue                           $queue
      * @param \Codex\Hooks\Git\Contracts\Factory|\Codex\Hooks\Git\Factory $git
      */

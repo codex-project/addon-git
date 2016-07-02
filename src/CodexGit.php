@@ -34,7 +34,7 @@ class CodexGit
     protected $files;
 
     /**
-     * @var \Codex\Contracts\Codex|\Codex\Codex
+     * @var \Codex\Codex
      */
     protected $codex;
 
@@ -51,7 +51,7 @@ class CodexGit
     /**
      * Factory constructor.
      *
-     * @param \Codex\Contracts\Codex|\Codex\Codex                 $parent
+     * @param \Codex\Codex                 $parent
      * @param \Illuminate\Contracts\Filesystem\Filesystem         $files
      * @param \Illuminate\Contracts\Queue\Queue                   $queue
      * @param \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager $git
