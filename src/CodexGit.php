@@ -6,11 +6,9 @@
  */
 namespace Codex\Addon\Git;
 
-use Codex\Addon\Git\Jobs\SyncJob;
 use Codex\Codex;
 use Codex\Projects\Project;
 use Codex\Traits\HookableTrait;
-use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -51,7 +49,7 @@ class CodexGit
     /**
      * Factory constructor.
      *
-     * @param \Codex\Codex                 $parent
+     * @param \Codex\Codex                                        $parent
      * @param \Illuminate\Contracts\Filesystem\Filesystem         $files
      * @param \Illuminate\Contracts\Queue\Queue                   $queue
      * @param \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager $git
@@ -61,7 +59,7 @@ class CodexGit
         $this->codex = $parent;
         $this->files = $files;
         $this->queue = $queue;
-        $this->git = $git;
+        $this->git   = $git;
 
         $this->hookPoint('git:factory:done');
     }
@@ -92,14 +90,11 @@ class CodexGit
      */
     public function getEnabledProjects()
     {
-        return array_filter($this->codex->projects->all(), function(Project $project){
+        return array_filter($this->codex->projects->all(), function (Project $project)
+        {
             return $project->config('git.enabled', false) === true;
         });
     }
-
-
-
-
 
 
     /**

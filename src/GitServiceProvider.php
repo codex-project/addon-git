@@ -35,6 +35,10 @@ class GitServiceProvider extends ServiceProvider
         $this->codexHook('constructed', function (Codex $codex){
             $codex->extend('git', CodexGit::class);
         });
+        $this->codexHook('project:constructed', function(Project $project){
+            $project->extend('git', GitProject::class);
+        });
+
         return $app;
     }
 

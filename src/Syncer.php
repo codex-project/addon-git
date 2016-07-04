@@ -2,6 +2,7 @@
 namespace Codex\Addon\Git;
 
 use Closure;
+use Codex\Exception\CodexException;
 use Codex\Projects\Project;
 use Codex\Traits\HookableTrait;
 use Illuminate\Contracts\Cache\Repository;
@@ -44,6 +45,10 @@ class Syncer
     /** @var \Codex\Codex */
     protected $codex;
 
+    protected $connection;
+
+    protected $connections = [ ];
+
     /**
      * Syncer constructor.
      *
@@ -53,11 +58,13 @@ class Syncer
      */
     public function __construct(Project $project, Manager $git, Repository $cache)
     {
-        $this->project = $project;
-        $this->git     = $git;
-        $this->cache   = $cache;
-        $this->fs      = $project->getFiles();
-        $this->codex   = $project->getCodex();
+        $this->project     = $project;
+        $this->git         = $git;
+        $this->cache       = $cache;
+        $this->fs          = $project->getFiles();
+        $this->codex       = $project->getCodex();
+        $this->connections = $project->config('git.connections', [ ]);
+        $this->connection  = null;
 
         $this->hookPoint('git:syncer', [ $this ]);
     }
@@ -72,8 +79,41 @@ class Syncer
      */
     public function setting($key, $default = null)
     {
-        return array_get($this->project->config('git', [ ]), $key, $default);
+
+        if ( count($this->connections) === 0 )
+        {
+            throw CodexException::because('There are no git connections defined');
+        }
+
+        if ( $this->connection === null )
+        {
+            $this->connection = array_keys($this->connections)[0];
+        }
+
+        return array_get($this->project->config('git.connections.' . $this->connection, [ ]), $key, $default);
     }
+
+    /**
+     * @return null
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+    /**
+     * @param null $connection
+     *
+     * @return Syncer
+     */
+    public function setConnection($connection)
+    {
+        $this->connection = $connection;
+
+        return $this;
+    }
+
+
 
     /**
      * client method
@@ -85,6 +125,7 @@ class Syncer
     public function client($connection = null)
     {
         $connection = $connection ?: $this->setting('connection');
+
         return $this->git->connection($connection);
     }
 
@@ -112,6 +153,7 @@ class Syncer
     public function log($level, $message, $context = [ ])
     {
         $this->codex->log($level, $message, $context);
+
         return $message;
     }
 
@@ -172,7 +214,8 @@ class Syncer
         $config     = $this->git->getConfig($connection);
         $driver     = $config[ 'driver' ];
 
-        if($driver === 'github'){
+        if ( $driver === 'github' )
+        {
             // Downloading large files with the git downloader fails.
             // The Github api can get 1MB max blob size.
             // So for github drive, we hard define zip as downloader
@@ -191,6 +234,7 @@ class Syncer
 
     /**
      * getBranchesToSync method
+     *
      * @return array
      */
     public function getBranchesToSync()
@@ -224,11 +268,13 @@ class Syncer
             }
         }
         $this->fire('branches.finish', [ $branchesToSync ]);
+
         return $branchesToSync;
     }
 
     /**
      * getVersionsToSync method
+     *
      * @return array
      */
     public function getVersionsToSync()
@@ -274,6 +320,7 @@ class Syncer
         }
 
         $this->fire('versions.finish', [ $versionsToSync ]);
+
         return $versionsToSync;
     }
 
@@ -378,13 +425,14 @@ class Syncer
     /**
      * @param $name
      *
-     * @return Downloader\DownloadInterface|Downloader\AbstractDownloader|Downloader\GitDownloader
+     * @return Codex\Addon\Git\Remote\Downloader\DownloadInterface|Codex\Addon\Git\Remote\Downloader\AbstractDownloader|Codex\Addon\Git\Remote\Downloader\GitDownloader
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
     public function createDownloader($name)
     {
         $class = ucfirst($name) . 'Downloader';
         $class = 'Codex\Addon\Git\Downloader\\' . $class;
+
         return app()->build($class, [ $this ]);
     }
 

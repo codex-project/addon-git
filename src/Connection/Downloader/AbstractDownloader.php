@@ -1,15 +1,25 @@
 <?php
 /**
+ * Part of the Codex Project packages.
+ *
+ * License and copyright information bundled with this package in the LICENSE file.
+ *
+ * @author Robin Radic
+ * @copyright Copyright 2016 (c) Codex Project
+ * @license http://codex-project.ninja/license The MIT License
+ */
+
+/**
  * Created by IntelliJ IDEA.
  * User: radic
  * Date: 6/11/16
  * Time: 5:16 PM
  */
 
-namespace Codex\Addon\Git\Downloader;
+namespace Codex\Addon\Git\Connection\Downloader;
 
 
-use Codex\Addon\Git\Syncer;
+use Codex\Addon\Git\Connection\Connection;
 use Sebwite\Filesystem\Filesystem;
 
 abstract class AbstractDownloader implements DownloadInterface
@@ -38,18 +48,18 @@ abstract class AbstractDownloader implements DownloadInterface
     /**
      * AbstractDownloader constructor.
      *
-     * @param $syncer
+     * @param $connection
      */
-    public function __construct(Syncer $syncer, Filesystem $fs)
+    public function __construct(Connection $connection, Filesystem $fs)
     {
-        $this->syncer = $syncer;
+        $this->syncer = $connection;
         $this->fs     = $fs;
 
-        $this->project   = $syncer->getProject();
-        $this->docPath   = $syncer->setting('sync.paths.docs');
-        $this->menuPath  = $syncer->setting('sync.paths.menu');
-        $this->indexPath = $syncer->setting('sync.paths.index');
-        $this->remote    = $syncer->client($syncer->setting('connection'));
+        $this->project   = $connection->getGitProject()->getProject();
+        $this->docPath   = $connection->getDocsPath();
+        $this->menuPath  = $connection->getMenuPath();
+        $this->indexPath = $connection->getIndexPath();
+        #$this->remote    = $connection->client($connection->setting('connection'));
     }
 
     /**
