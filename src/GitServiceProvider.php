@@ -32,12 +32,8 @@ class GitServiceProvider extends ServiceProvider
     {
         $app = parent::register();
         $this->codexIgnoreRoute('_git-webhook');
-        $this->codexHook('constructed', function (Codex $codex){
-            $codex->extend('git', CodexGit::class);
-        });
-        $this->codexHook('project:constructed', function(Project $project){
-            $project->extend('git', GitProject::class);
-        });
+        Codex::extend('git', CodexGit::class);
+        Project::extend('git', GitProject::class);
 
         return $app;
     }
