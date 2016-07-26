@@ -178,6 +178,7 @@ class Syncer
      */
     public function syncAll()
     {
+        $this->fire('all');
         $current  = 0;
         $branches = $this->getBranchesToSync();
         $versions = $this->getVersionsToSync();
@@ -190,11 +191,13 @@ class Syncer
         }
         foreach ( $versions as $version )
         {
+
             $this->syncRef($version, 'tag');
             $current++;
             $this->fire('tick', [ 'version', $current, count($versions), $version ]);
             #$tick($current, count($version), $version);
         }
+        $this->fire('all.done');
     }
 
     /**
