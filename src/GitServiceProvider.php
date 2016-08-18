@@ -1,10 +1,10 @@
 <?php
 namespace Codex\Addon\Git;
 
-use Codex\Console\ListCommand;
 use Codex\Codex;
+use Codex\Console\ListCommand;
 use Codex\Projects\Project;
-use Codex\Traits\CodexProviderTrait;
+use Codex\Support\Traits\CodexProviderTrait;
 use Laradic\ServiceProvider\ServiceProvider;
 
 class GitServiceProvider extends ServiceProvider

@@ -21,10 +21,9 @@ namespace Codex\Addon\Git;
 
 use Codex\Addon\Git\Connection\Connection;
 use Codex\Addon\Git\Jobs\GitSyncProject;
-use Codex\Codex;
 use Codex\Projects\Project;
 use Codex\Support\Extendable;
-use Codex\Traits\ConfigTrait;
+use Codex\Support\Traits\ConfigTrait;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class GitProject extends Extendable

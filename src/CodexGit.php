@@ -8,7 +8,7 @@ namespace Codex\Addon\Git;
 
 use Codex\Codex;
 use Codex\Projects\Project;
-use Codex\Traits\HookableTrait;
+use Codex\Support\Traits\HookableTrait;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Foundation\Bus\DispatchesJobs;
