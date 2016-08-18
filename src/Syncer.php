@@ -7,7 +7,7 @@ use Codex\Projects\Project;
 use Codex\Traits\HookableTrait;
 use Illuminate\Contracts\Cache\Repository;
 use Sebwite\Git\Contracts\Manager;
-use Sebwite\Support\Str;
+use Laradic\Support\Str;
 use vierbergenlars\SemVer\expression;
 use vierbergenlars\SemVer\SemVerException;
 use vierbergenlars\SemVer\version;

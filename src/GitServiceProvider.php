@@ -5,7 +5,7 @@ use Codex\Console\ListCommand;
 use Codex\Codex;
 use Codex\Projects\Project;
 use Codex\Traits\CodexProviderTrait;
-use Sebwite\Support\ServiceProvider;
+use Laradic\ServiceProvider\ServiceProvider;
 
 class GitServiceProvider extends ServiceProvider
 {

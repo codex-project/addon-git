@@ -19,7 +19,7 @@
 namespace Codex\Addon\Git\Connection\Downloader;
 
 
-use Sebwite\Support\Arr;
+use Laradic\Support\Arr;
 
 class GitDownloader extends AbstractDownloader
 {

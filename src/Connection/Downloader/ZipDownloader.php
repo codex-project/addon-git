@@ -19,7 +19,7 @@
 namespace Codex\Addon\Git\Connection\Downloader;
 
 
-use Sebwite\Support\Str;
+use Laradic\Support\Str;
 use Symfony\Component\Process\ExecutableFinder;
 use ZipArchive;
 

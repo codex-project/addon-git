@@ -15,7 +15,7 @@ use Codex\Projects\Project;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Http\Response;
-use Sebwite\Support\Arr;
+use Laradic\Support\Arr;
 
 /**
  * This is the GithubController.

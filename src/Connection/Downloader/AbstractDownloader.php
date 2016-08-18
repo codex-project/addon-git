@@ -20,14 +20,14 @@ namespace Codex\Addon\Git\Connection\Downloader;
 
 
 use Codex\Addon\Git\Connection\Connection;
-use Sebwite\Filesystem\Filesystem;
+use Laradic\Filesystem\Filesystem;
 
 abstract class AbstractDownloader implements DownloadInterface
 {
     /** @var \Codex\Addon\Git\Syncer */
     protected $syncer;
 
-    /** @var \Sebwite\Filesystem\Filesystem */
+    /** @var \Laradic\Filesystem\Filesystem */
     protected $fs;
 
     /** @var \Sebwite\Git\Remotes\Remote */
@@ -79,7 +79,7 @@ abstract class AbstractDownloader implements DownloadInterface
     }
 
     /**
-     * @return \Sebwite\Filesystem\Filesystem
+     * @return \Laradic\Filesystem\Filesystem
      */
     public function getFs()
     {
@@ -87,7 +87,7 @@ abstract class AbstractDownloader implements DownloadInterface
     }
 
     /**
-     * @param \Sebwite\Filesystem\Filesystem $fs
+     * @param \Laradic\Filesystem\Filesystem $fs
      */
     public function setFs($fs)
     {
