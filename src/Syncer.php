@@ -7,7 +7,7 @@ use Codex\Projects\Project;
 use Codex\Support\Traits\HookableTrait;
 use Illuminate\Contracts\Cache\Repository;
 use Laradic\Support\Str;
-use Sebwite\Git\Contracts\Manager;
+use Laradic\Git\Contracts\Manager;
 use vierbergenlars\SemVer\expression;
 use vierbergenlars\SemVer\SemVerException;
 use vierbergenlars\SemVer\version;
@@ -33,7 +33,7 @@ class Syncer
      */
     protected $remote;
 
-    /** @var \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager */
+    /** @var \Laradic\Git\Contracts\Manager|\Laradic\Git\Manager */
     protected $git;
 
     /** @var \Codex\Projects\Project */
@@ -53,7 +53,7 @@ class Syncer
      * Syncer constructor.
      *
      * @param \Codex\Projects\Project                             $project
-     * @param \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager $git
+     * @param \Laradic\Git\Contracts\Manager|\Laradic\Git\Manager $git
      * @param \Illuminate\Contracts\Cache\Repository              $cache
      */
     public function __construct(Project $project, Manager $git, Repository $cache)
@@ -120,7 +120,7 @@ class Syncer
      *
      * @param null $connection
      *
-     * @return \Sebwite\Git\Remotes\Remote
+     * @return \Laradic\Git\Remotes\Remote
      */
     public function client($connection = null)
     {
@@ -364,7 +364,7 @@ class Syncer
     }
 
     /**
-     * @return \Sebwite\Git\Manager
+     * @return \Laradic\Git\Manager
      */
     public function getGit()
     {

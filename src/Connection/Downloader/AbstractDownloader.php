@@ -30,7 +30,7 @@ abstract class AbstractDownloader implements DownloadInterface
     /** @var \Laradic\Filesystem\Filesystem */
     protected $fs;
 
-    /** @var \Sebwite\Git\Remotes\Remote */
+    /** @var \Laradic\Git\Remotes\Remote */
     protected $remote;
 
     /** @var mixed */

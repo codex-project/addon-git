@@ -26,7 +26,7 @@ use Codex\Addon\Git\Exceptions\CodexGitException;
 use Codex\Addon\Git\GitProject;
 use Codex\Support\Collection;
 use Illuminate\Contracts\Cache\Repository;
-use Sebwite\Git\Contracts\Manager;
+use Laradic\Git\Contracts\Manager;
 
 class Connection
 {
@@ -68,7 +68,7 @@ class Connection
      *
      * @param                                        $name
      * @param \Codex\Addon\Git\GitProject            $gitProject
-     * @param \Sebwite\Git\Contracts\Manager         $git
+     * @param \Laradic\Git\Contracts\Manager         $git
      * @param \Illuminate\Contracts\Cache\Repository $cache
      */
     public function __construct($name, \Codex\Addon\Git\GitProject $gitProject, Manager $git, Repository $cache)

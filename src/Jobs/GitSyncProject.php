@@ -47,7 +47,7 @@ class GitSyncProject extends Job implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param \Sebwite\Git\Manager                   $git
+     * @param \Laradic\Git\Manager                   $git
      * @param \Illuminate\Contracts\Cache\Repository $cache
      *
      * @internal param \Codex\Projects\Project $project

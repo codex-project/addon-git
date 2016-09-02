@@ -20,7 +20,7 @@ class GitServiceProvider extends ServiceProvider
     ];
 
     protected $providers = [
-        \Sebwite\Git\GitServiceProvider::class,
+        \Laradic\Git\GitServiceProvider::class,
         Http\HttpServiceProvider::class,
     ];
 

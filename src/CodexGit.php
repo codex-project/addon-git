@@ -12,7 +12,7 @@ use Codex\Support\Traits\HookableTrait;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Sebwite\Git\Contracts\Manager;
+use Laradic\Git\Contracts\Manager;
 
 /**
  * This is the class Factory.
@@ -42,7 +42,7 @@ class CodexGit
     protected $queue;
 
     /**
-     * @var \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager
+     * @var \Laradic\Git\Contracts\Manager|\Laradic\Git\Manager
      */
     protected $git;
 
@@ -52,7 +52,7 @@ class CodexGit
      * @param \Codex\Codex                                        $parent
      * @param \Illuminate\Contracts\Filesystem\Filesystem         $files
      * @param \Illuminate\Contracts\Queue\Queue                   $queue
-     * @param \Sebwite\Git\Contracts\Manager|\Sebwite\Git\Manager $git
+     * @param \Laradic\Git\Contracts\Manager|\Laradic\Git\Manager $git
      */
     public function __construct(Codex $parent, Filesystem $files, Queue $queue, Manager $git)
     {
@@ -172,7 +172,7 @@ class CodexGit
     /**
      * get git value
      *
-     * @return Manager|\Sebwite\Git\Remotes\Manager
+     * @return Manager|\Laradic\Git\Remotes\Manager
      */
     public function getGit()
     {
@@ -182,7 +182,7 @@ class CodexGit
     /**
      * Set the git value
      *
-     * @param Manager|\Sebwite\Git\Remotes\Manager $git
+     * @param Manager|\Laradic\Git\Remotes\Manager $git
      *
      * @return Factory
      */
