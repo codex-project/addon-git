@@ -4,9 +4,9 @@
  *
  * License and copyright information bundled with this package in the LICENSE file.
  *
- * @author Robin Radic
+ * @author    Robin Radic
  * @copyright Copyright 2016 (c) Codex Project
- * @license http://codex-project.ninja/license The MIT License
+ * @license   http://codex-project.ninja/license The MIT License
  */
 
 /**
@@ -20,6 +20,8 @@ namespace Codex\Addon\Git\Connection\Downloader;
 
 
 use Codex\Addon\Git\Connection\Connection;
+use Codex\Addon\Git\Syncer;
+use Codex\Projects\Project;
 use Laradic\Filesystem\Filesystem;
 
 abstract class AbstractDownloader implements DownloadInterface
@@ -47,18 +49,20 @@ abstract class AbstractDownloader implements DownloadInterface
 
     /**
      * AbstractDownloader constructor.
-     *
      * @param $connection
+     *
      */
-    public function __construct(Connection $connection, Filesystem $fs)
+    public function __construct(Syncer $syncer, Filesystem $fs)
     {
-        $this->syncer = $connection;
+        //public function __construct(Connection $connection, Filesystem $fs)
+        $this->syncer = $syncer;
         $this->fs     = $fs;
 
-        $this->project   = $connection->getGitProject()->getProject();
-        $this->docPath   = $connection->getDocsPath();
-        $this->menuPath  = $connection->getMenuPath();
-        $this->indexPath = $connection->getIndexPath();
+        $this->project   = $syncer->getProject();
+        $this->docPath   = $syncer->setting('sync.paths.docs');
+        $this->menuPath  = $syncer->setting('sync.paths.menu');
+        $this->indexPath = $syncer->setting('sync.paths.index');
+        $this->remote    = $syncer->client();
         #$this->remote    = $connection->client($connection->setting('connection'));
     }
 

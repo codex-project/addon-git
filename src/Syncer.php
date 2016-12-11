@@ -124,7 +124,7 @@ class Syncer
      */
     public function client($connection = null)
     {
-        $connection = $connection ?: $this->setting('connection');
+        $connection = $connection ?: $this->setting('service');
 
         return $this->git->connection($connection);
     }
@@ -212,17 +212,17 @@ class Syncer
         $this->fire('start', [ $ref, $type ]);
         $owner      = $this->setting('owner');
         $repo       = $this->setting('repository');
-        $remote     = $this->client($connection = $this->setting('connection'));
+        $remote     = $this->client();
         $downloader = $this->setting('downloader');
-        $config     = $this->git->getConfig($connection);
-        $driver     = $config[ 'driver' ];
+        $gitConfig     = $this->git->getConfig($this->setting('service'));
+        $driver     = $gitConfig[ 'driver' ];
 
         if ( $driver === 'github' )
         {
             // Downloading large files with the git downloader fails.
             // The Github api can get 1MB max blob size.
             // So for github drive, we hard define zip as downloader
-            $downloader = 'zip';
+//            $downloader = 'zip';
         }
 
         $this->createDownloader($downloader)->download($owner, $repo, $ref);
@@ -250,7 +250,7 @@ class Syncer
         $this->fire('branches.start', [ $allowedBranches ]);
 
         $branchesToSync = [ ];
-        $remote         = $this->client($this->setting('connection'));
+        $remote         = $this->client();
         $repo           = $this->setting('repository');
         $owner          = $this->setting('owner');
         $branches       = $remote->getBranches($repo, $owner);
@@ -284,7 +284,7 @@ class Syncer
     {
         $versionsToSync      = [ ];
         $remote              = $this->client($this->setting('connection'));
-        $currentVersions     = $this->project->getRefs();
+        $currentVersions     = $this->project->refs->all();
         $allowedVersionRange = new expression($this->setting('sync.constraints.versions'));
         $tags                = $remote->getTags($this->setting('repository'), $this->setting('owner'));
         $skipPatch           = $this->setting('sync.constraints.skip_patch_versions', false);
@@ -434,7 +434,7 @@ class Syncer
     public function createDownloader($name)
     {
         $class = ucfirst($name) . 'Downloader';
-        $class = 'Codex\Addon\Git\Downloader\\' . $class;
+        $class = 'Codex\\Addon\\Git\\Connection\\Downloader\\' . $class;
 
         return app()->build($class, [ $this ]);
     }

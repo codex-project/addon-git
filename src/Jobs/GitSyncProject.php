@@ -29,6 +29,9 @@ class GitSyncProject extends Job implements ShouldQueue
 
     protected $project;
 
+    /**
+     * @var \Codex\Codex
+     */
     protected $codex;
 
     /**
@@ -42,6 +45,7 @@ class GitSyncProject extends Job implements ShouldQueue
         $this->git           = $gitProject;
         $this->gitConnection = $gitConnection;
         $this->project       = $gitProject->getProject();
+        $this->codex = $this->project->getCodex();
     }
 
     /**
@@ -107,7 +111,7 @@ class GitSyncProject extends Job implements ShouldQueue
                 continue;
             }
             $cacheKey        = md5("{$this->project}{$branch}");
-            $cached          = $this->project->get($cacheKey, false);
+            $cached          = $this->codex->getCache()->get($cacheKey, false);
             $destinationPath = path_join($this->project->getPath(), $branch);
 
             if ( $cached !== $sha || $cached === false || !$this->fs->exists($destinationPath) )

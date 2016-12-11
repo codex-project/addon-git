@@ -94,9 +94,9 @@ class GitProject extends Extendable
         return $this->config('enabled', false) === true;
     }
 
-    public function sync($connection = null)
+    public function sync()
     {
-        $job = app()->build(GitSyncProject::class, ['gitProject' => $this, '$connection' => $connection]);
+        $job = app()->build(Syncer::class, ['project' => $this->project]);
 
         $this->dispatchNow($job);
     }

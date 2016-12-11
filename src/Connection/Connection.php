@@ -100,7 +100,7 @@ class Connection
 
     public function client()
     {
-        return app('sebwite.git')->connection($this->getService());
+        return app('laradic.git')->connection($this->service);
     }
 
     /**

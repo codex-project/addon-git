@@ -36,11 +36,13 @@ class SyncCommand extends Command
 
     public function handle()
     {
+        $this->startListeners();
         $project = $this->codex->projects->get($name = $this->argument('name'));
         if(false === $project->git->isEnabled()){
             return $this->error('Not a git enabled project');
         }
-        $project->git->sync($this->argument('connection'));
+        $this->sync($project, false, $this->argument('connection'));
+//        $project->git->sync($this->argument('connection'));
     }
     public function handle2()
     {
@@ -89,10 +91,6 @@ class SyncCommand extends Command
 
     protected function sync($project, $queue = false, $connection = null)
     {
-        if ( $project instanceof Project )
-        {
-            $project = $project->getName();
-        }
         if ( $queue === true )
         {
             $this->dispatch(new SyncJob($project, $connection));
