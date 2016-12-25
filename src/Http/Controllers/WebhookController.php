@@ -10,7 +10,7 @@ use Codex\Addon\Git\CodexGit;
 use Codex\Addon\Git\Console\SyncCommand;
 use Codex\Addon\Git\Jobs\SyncJob;
 use Codex\Codex;
-use Codex\Http\Controllers\Controller;
+use Codex\Http\Controllers\CodexController;
 use Codex\Projects\Project;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -25,7 +25,7 @@ use Laradic\Support\Arr;
  * @copyright      Copyright (c) 2015, Caffeinated
  * @license        https://tldrlegal.com/license/mit-license MIT License
  */
-class WebhookController extends Controller
+class WebhookCodexController extends CodexController
 {
     use DispatchesJobs;
 

@@ -82,7 +82,7 @@ class Syncer
 
         if ( count($this->connections) === 0 )
         {
-            throw CodexException::because('There are no git connections defined');
+            throw CodexException::create('There are no git connections defined');
         }
 
         if ( $this->connection === null )
